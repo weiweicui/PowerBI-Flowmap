@@ -1,0 +1,15 @@
+title: ""
+
+# Config settings
+baseurl: "PowerBI-Flowmap"
+
+# Build settings
+theme: minima
+
+
+# checklist:
+# a. _data/sliders.yml: change the images
+# b. index.md: title and content
+
+disqus: weiweicui-flowmap
+name: https://weiweicui.github.io/PowerBI-Flowmap/

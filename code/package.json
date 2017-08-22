@@ -1,0 +1,29 @@
+{
+    "name": "weeny",
+    "version": "1.0.0",
+    "description": "root modules at git",
+    "dependencies": {
+        "d3": "^4.8.0"
+    },
+    "devDependencies": {
+        "@types/d3": "^4.8.0",
+        "@types/node": "^6.0.46",
+        "bingmaps": "^1.0.15",
+        "concurrently": "^3.5.0",
+        "d3-builder": "^0.4.0",
+        "del": "^3.0.0",
+        "fs-sync": "^1.0.4",
+        "mirror-folder": "^2.1.1",
+        "rollup-plugin-multi-entry": "^2.0.1",
+        "rollup-plugin-node-resolve": "^3.0.0",
+        "rollup-watch": "^4.3.1"
+    },
+    "scripts": {
+        "watch": "concurrent \"npm run tsc\" \"npm run rollup\" \"npm run pbi\"",
+        "tsc": "cd PowerBI/Flowmap && tsc -w -p tsc.json",
+        "rollup": "cd PowerBI/Flowmap && rollup -w -c",
+        "pbi": "cd PowerBI/Flowmap/visual && pbiviz start"
+    },
+    "author": "Weiwei Cui",
+    "license": "ISC"
+}

@@ -1,0 +1,53 @@
+{    
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/.tmp": true,
+        "**/.npmignore": true,
+        // "**/visual/assets": true,
+        "**/visual/tsconfig.json": true,
+        "**/visual/src": true,
+        "**/visual/.api": true,
+        // "**/visual/app.js": true,
+        "**/visual/package.json": true,
+        "**/typings": true,
+        "**/node_modules":true,
+        "**/PowerBI/*/visual/.vscode":true,
+        "**/PowerBI/*/github/docs/_includes": true,
+        "**/PowerBI/*/github/docs/_layouts": true,
+        "**/PowerBI/*/github/docs/lib": true
+    },
+    "vsicons.presets.angular": false,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/bundle/**/*.js":true,
+        "**/.bundle/**/*.js":true,
+        "**/visual":true,
+        "**/public":true,
+        "**/.api":true
+    },
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/pbiviz.json"
+      ],
+      "url": "./PowerBI/.api/v1.6.0/schema.pbiviz.json"
+    },
+    {
+      "fileMatch": [
+        "/capabilities.json"
+      ],
+      "url": "./PowerBI/.api/v1.6.0/schema.capabilities.json"
+    },
+    {
+      "fileMatch": [
+        "/dependencies.json"
+      ],
+      "url": "./PowerBI/.api/v1.3.0/schema.dependencies.json"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "visual": {
+    "name": "flowmap",
+    "displayName": "Flow map",
+    "guid": "flowmap30CFDD5B92F848C88242B1E81C8C33C1",
+    "visualClassName": "Visual",
+    "version": "1.2.2",
+    "description": "Flow-map is a flow-style diagram that visualizes the movement of objects from one location to many locations. By merging lines together, it can dramatically reduce visual clutter and enhance directional trends.",
+    "supportUrl": "https://weiweicui.github.io/PowerBI-Flowmap/",
+    "gitHubUrl": "https://github.com/weiweicui/PowerBI-Flowmap/"
+  },
+  "apiVersion": "1.6.0",
+  "author": {
+    "name": "Weiwei Cui",
+    "email": "weiweicui@outlook.com"
+  },
+  "assets": {
+    "icon": "assets/flowmap30CFDD5B92F848C88242B1E81C8C33C7.png"
+  },
+  "externalJS": ["./app.js" ],
+  "style": "style/visual.less",
+  "capabilities": "capabilities.json",
+  "dependencies": "dependencies.json",
+  "stringResources": []
+}

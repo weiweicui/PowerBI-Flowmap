@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "es2015",
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "./PowerBI/.lib/*",
+                "./lava/*"
+            ]
+        },
+        "noEmit": true
+    },
+    "include": [
+        "./PowerBI/Flowmap/src/*.ts"
+    ],
+    "files": [
+        "./lava/d3/ext.d.ts"
+    ]
+}

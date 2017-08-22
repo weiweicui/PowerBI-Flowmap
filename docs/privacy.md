@@ -1,0 +1,2 @@
+# Privacy Statement
+We do not collect or store your information. However, if latitude/longitude are not provided in the Fields, we may transmit your content in the fields of `Origin` and `Destination` via [*Microsoft Bing Maps REST Services*](https://msdn.microsoft.com/en-us/library/ff701715.aspx) to obtain the corresponding geo-coordinates. If you wish __not__ to transmit any information, you need to specifically provide the latitudes and longitudes in the Fields.
