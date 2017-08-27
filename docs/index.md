@@ -26,7 +26,7 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * Add **Origin/Destination name** fields: By default, values in **Origin** and **Destination** fields are used in tooltips. However, they may be too long or too ugly if you also want to use them for the geocoding purpose. Now you can set these two fields and show friendly names in tooltips.
     * Add **Advanced - Language**: Can change the language used in the background map.
     * Add **Advanced - Cache**: Store the geocoding results, so they can be reused when you open the report next time.
-* Update 1.2.1:
+* Update 1.2.X:
     * Add **Map control** format: The map-related settings (in **Advanced**) are moved here, and add some more.
     * Add **Map element** format: In case you find some map elements, such as roads and labels, distracting, you can turn them off here.
     * Change the color setting to be consistent with other visuals. By defualt, all flows use the same color. You need to change them manually in the **Flow color**. In addition, only the colors with non-empty labels are displayed in the legend bar.
