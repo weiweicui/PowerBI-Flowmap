@@ -27,7 +27,9 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * Add **Advanced - Language**: Can change the language used in the background map.
     * Add **Advanced - Cache**: Store the geocoding results, so they can be reused when you open the report next time.
 * Update 1.2.X:
-    * Add **Map control** format: The map-related settings (in **Advanced**) are moved here, and add some more.
+    * Add **Map control** format: The map-related settings (in **Advanced**) are moved here, and add some more:
+        * **Auto fit**: Zoom/pan the map to fit everything in the viewport when the selection is changed.
+        * **Type**: Change the map style between `Road` and `Aerial`.
     * Add **Map element** format: In case you find some map elements, such as roads and labels, distracting, you can turn them off here.
     * Change the color setting to be consistent with other visuals. By defualt, all flows use the same color. You need to change them manually in the **Flow color**. In addition, only the colors with non-empty labels are displayed in the legend bar.
 
