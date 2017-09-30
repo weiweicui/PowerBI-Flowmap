@@ -26,14 +26,27 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * Add **Origin/Destination name** fields: By default, values in **Origin** and **Destination** fields are used in tooltips. However, they may be too long or too ugly if you also want to use them for the geocoding purpose. Now you can set these two fields and show friendly names in tooltips.
     * Add **Advanced - Language**: Can change the language used in the background map.
     * Add **Advanced - Cache**: Store the geocoding results, so they can be reused when you open the report next time.
-* Update 1.2.X:
+* Update 1.2.4:
     * Add **Map control** format: The map-related settings (in **Advanced**) are moved here, and add some more:
         * **Auto fit**: Zoom/pan the map to fit everything in the viewport when the selection is changed.
         * **Type**: Change the map style between `Road` and `Aerial`.
     * Add **Map element** format: In case you find some map elements, such as roads and labels, distracting, you can turn them off here.
     * Change the color setting to be consistent with other visuals. By defualt, all flows use the same color. You need to change them manually in the **Flow color**. In addition, only the colors with non-empty labels are displayed in the legend bar.
+* Update 1.2.5:
+    * Add **Label** format: Now the content displayed in the bubble labels can be different from the hovering tooltips. If nothing in the field, the names are displayed.
+    * Adjust **Width** and **Color** fields: Previously, **Width** field only takes numeric values and **Color** field only takes distrete values. Now they both can take either continuous values or discrete values. However, due to the algorithm limit, `Flow` style does not work with continuous values in the **Color** field.
+    * Separate the **Visual style** format (from **Advance - Flow stle**): Now it is more prominent. And now only `Flow` style has the number constraint. In particular, I add a `Auto` style. So the visual determines the exact style based on the following rules (of course, you can manually pick one by yourself):
+        * Choose `Flow` if the the number of total flows is less than 5, otherwise,
+        * Choose `Great circle` if the total row number is less than 500, otherwise,
+        * Choose `Straight`.
+    * Adjust **Bubble** format: Now you can:
+        * Choose to show bubbles for origins or destinations.
+        * Just show overall sizes instead of slices.
+        * Set bubble to the same size if **Bubble - Scale** is set to `0%`.
+        * Change label background colors for origins or destinations.
+    * Add a couple of more default map styles to **Map control - Type**.
 
-## How to Use
+## How to Use (v1.1.4)
 * Required fields:
     * **Origin** and **Destination**: These two fields are used to construct relationships. They may be treated as addresses and used to query geo-locations (through [Bing Maps REST Services](https://msdn.microsoft.com/en-us/library/ff701713.aspx)) if latitude/longitude are not specified.
     * **Value**: This field is used to compute flow widths. Negative values will be ignored.
