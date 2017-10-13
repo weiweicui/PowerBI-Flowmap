@@ -32,31 +32,51 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
         * **Type**: Change the map style between `Road` and `Aerial`.
     * Add **Map element** format: In case you find some map elements, such as roads and labels, distracting, you can turn them off here.
     * Change the color setting to be consistent with other visuals. By defualt, all flows use the same color. You need to change them manually in the **Flow color**. In addition, only the colors with non-empty labels are displayed in the legend bar.
-* Update 1.2.5:
+* Update 1.2.6:
     * Add **Label** format: Now the content displayed in the bubble labels can be different from the hovering tooltips. If nothing in the field, the names are displayed.
     * Adjust **Width** and **Color** fields: Previously, **Width** field only takes numeric values and **Color** field only takes distrete values. Now they both can take either continuous values or discrete values. However, due to the algorithm limit, `Flow` style does not work with continuous values in the **Color** field.
-    * Separate the **Visual style** format (from **Advance - Flow stle**): Now it is more prominent. And now only `Flow` style has the number constraint. In particular, I add a `Auto` style. So the visual determines the exact style based on the following rules (of course, you can manually pick one by yourself):
+    * Separate the **Visual style** format (from **Advance - Flow style**): Now it is more prominent. And now only `Flow` style has the number constraint. In particular, I add a `Auto` style. So the visual determines the exact style based on the following rules (of course, you can manually pick one by yourself):
         * Choose `Flow` if the the number of total flows is less than 5, otherwise,
         * Choose `Great circle` if the total row number is less than 500, otherwise,
         * Choose `Straight`.
     * Adjust **Bubble** format: Now you can:
         * Choose to show bubbles for origins or destinations.
         * Just show overall sizes instead of slices.
-        * Set bubble to the same size if **Bubble - Scale** is set to `0%`.
+        * Set bubble to the same (and small) size if **Bubble - Scale** is set to `0%`.
         * Change label background colors for origins or destinations.
     * Add a couple of more default map styles to **Map control - Type**.
 
-## How to Use (v1.1.4)
+## How to Use (Latest Version)
 * Required fields:
-    * **Origin** and **Destination**: These two fields are used to construct relationships. They may be treated as addresses and used to query geo-locations (through [Bing Maps REST Services](https://msdn.microsoft.com/en-us/library/ff701713.aspx)) if latitude/longitude are not specified.
-    * **Value**: This field is used to compute flow widths. Negative values will be ignored.
-* Optional fields:
-    * **Category**: If specified, the flows that have the same category value will be colored the same.
-    * **Origin/Destination latitude/longitude**: These fields specify the geo-locations of sources and targets.
+    * **Origin** and **Destination**: These two fields are used to construct relationships. The content there may be treated as addresses and used to query geo-locations (through [Bing Maps REST Services](https://msdn.microsoft.com/en-us/library/ff701713.aspx)) if latitude/longitude are not specified.
 
-* Special settings:
-    * **Advanced - Flow type**: It can be either `Out-flow`, which constructs flows based on the origins, or `In-flow`, which constructs flows based on the destinations.
-    * **Advanced - Flow limit**: This controls the max number of flows that can be displayed simultaneously.
+* Optional fields:
+    * **Width**: This field is used to compute flow widths. Negative values will be ignored. The default value is 1. The field can be numerical or categorical:
+        * When numerical, you can specify a min and max width to map them on the map.
+        * When categorical, such as texts, you can specify the width for each category, and a default value is used is not specified.
+    * **Color**: This field is used to compute flow colors. The field can be numerical or categorical:
+        * When numerical, you can set a min and max color to map them on the map, and values in between are interpolated.
+        * When categorical, such as texts, you can sepcify a color for each category. A default color is used when not specified.            
+        > Please note that, due to implementation limit, `Flow` style only works with categorical color values.
+    * **Origin/Destination latitude/longitude**: These fields specify the geo-locations of sources and targets.
+    * **Origin/Destination name**: These fields are used to represent origins and destinations when displayed in tooltips or labels. Sometimes, the values in the **Origin** and **Destination** fields are needed for geo-coding and cannot be user-friendly. So these two fields can help put friendly names in the report.
+    * **Tooltip**: You can choose what to show when hovering over a line or a bubble. By default, the names are displayed.
+    * **Label**: We can show labels for bubbles. This field will decide the content in the labels. By default the names are used. You can turn on this feature in the **Bubble - Label** panel.
+
+* Major settings:
+    * **Visual style**: You can change between `Flow`, `Great circle`, and `Straight line`.
+    In particular, I add a `Auto` style. So the visual determines the exact style based on the following rules (of course, you can manually pick one by yourself):
+        * Choose `Flow` if the the number of total flows is less than 5, otherwise,
+        * Choose `Great circle` if the total row number is less than 500, otherwise,
+        * Choose `Straight`.
+        > Please note that only the `Flow` style has a constraint to limit the number of flows displayed in the view. In addition, you can choose to bundle flows based on origins or destinations.
+    * **Color** and **Width**: These two panels allow you to adjust line attributes. Their contents may be adjusted in different situations.
+    * **Bubble - Label**: You need to set it to make the **Label** field works.
+    * **Detail format**: This panel controls how numerical values are formatted in tooltips or labels.
+    * **Map control - Auto fit**: When it is on, whe visual will try to fit everything in one view when a data change is detected.
+    * **Map element**: There are some high-level controls about what elements can be displayed in the visual.
+
+
 
 
 * Need more help? Please leave a comment below.
