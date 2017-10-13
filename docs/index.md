@@ -57,7 +57,7 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * **Color**: This field is used to compute flow colors. The field can be numerical or categorical:
         * When numerical, you can set a min and max color to map them on the map, and values in between are interpolated.
         * When categorical, such as texts, you can sepcify a color for each category. A default color is used when not specified.            
-        > Please note that, due to implementation limit, `Flow` style only works with categorical color values.
+    > Please note that, due to implementation limit, `Flow` style only works with categorical color values.
     * **Origin/Destination latitude/longitude**: These fields specify the geo-locations of sources and targets.
     * **Origin/Destination name**: These fields are used to represent origins and destinations when displayed in tooltips or labels. Sometimes, the values in the **Origin** and **Destination** fields are needed for geo-coding and cannot be user-friendly. So these two fields can help put friendly names in the report.
     * **Tooltip**: You can choose what to show when hovering over a line or a bubble. By default, the names are displayed.
@@ -69,7 +69,7 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
         * Choose `Flow` if the the number of total flows is less than 5, otherwise,
         * Choose `Great circle` if the total row number is less than 500, otherwise,
         * Choose `Straight`.
-        > Please note that only the `Flow` style has a constraint to limit the number of flows displayed in the view. In addition, you can choose to bundle flows based on origins or destinations.
+    > Please note that only the `Flow` style has a constraint to limit the number of flows displayed in the view. In addition, you can choose to bundle flows based on origins or destinations.
     * **Color** and **Width**: These two panels allow you to adjust line attributes. Their contents may be adjusted in different situations.
     * **Bubble - Label**: You need to set it to make the **Label** field works.
     * **Detail format**: This panel controls how numerical values are formatted in tooltips or labels.
