@@ -29,14 +29,14 @@ export interface ILayout {
     paths(width?: (w: number) => number): IPath[];
 
     /**
-     * Build a new set of path, using the given scale or the previous one
+     * Change the weight information for all paths
      */    
-    build(width?: (w: number) => number): IPath[];
-
+    build(weight?: (k: Key) => number): IPath[];
+   
     /**
      * Visit all points inside the layout, including the leaves and intermediate nodes
      */
-    visit(v: (p: IPoint) => void): this;
+    visit?(v: (p: IPoint) => void): this;
 }
 
 export interface IPath {
@@ -53,12 +53,11 @@ export interface IPath {
     /**
      * identify the same path
      */
-    id: string;
+    id: Key;
 
-    /**
-     * weights
-     */
-    leafs: StringMap<number>;
+    weight: number;
+
+    leafs: Key[];
 }
 
 export function layout(source: IPoint, targets: IPoint[], weights?: number[]): ILayout {
@@ -100,35 +99,19 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
     };
 
     class FlowPath implements IPath {
-        public id       : string;
+        public id: string;
         public pathWidth: number;
         public lineStart: IPathPoint = [];
-        public lineEnd  : IPathPoint = [];
-        public curveCtl : IPathPoint = [];
-        public curveEnd : IPathPoint = [];
-        public weights  : number[];
-        public offset   : number[] = [0, 0, 0, 0];// = [unit_dx, unit_dy, length, sign]
-        public leafs    : StringMap<number>;
-        public conv     = null as (input: IPathPoint, output: number[]) => void;
+        public lineEnd: IPathPoint = [];
+        public curveCtl: IPathPoint = [];
+        public curveEnd: IPathPoint = [];
+        public weights: number[];//[parent weight, self weight]
+        public offset: number[] = [0, 0, 0, 0];// = [unit_dx, unit_dy, length, sign]
+        // public leafs    : StringMap<number>;
+        public leafs: Key[];
+        public conv = null as (input: IPathPoint, output: number[]) => void;
     
-        // public d(conv?: (input: IPathPoint, output: number[]) => void): string {
-        //     var result = [] as any[], tmp = [0, 0];
-        //     var offx = this.offset[0] * this.offset[2] * this.offset[3];
-        //     var offy = this.offset[1] * this.offset[2] * this.offset[3];
-        //     this.conv = conv = (conv || this.conv);
-        //     conv = conv || (input => { tmp = input; });
-        //     conv(this.lineStart, tmp);
-        //     result.push("M", tmp[0], tmp[1]);
-        //     conv(this.lineEnd, tmp);
-        //     result.push("L", tmp[0], tmp[1]);
-        //     if (this.curveCtl.length > 0) {
-        //         conv(this.curveCtl, tmp);
-        //         result.push("Q", tmp[0] + offx, tmp[1] + offy);
-        //         conv(this.curveEnd, tmp);
-        //         result.push(tmp[0] + offx, tmp[1] + offy);
-        //     }
-        //     return result.join(' ');
-        // }
+        public nodes: FlowNode[];
 
         public d(conv?: (input: IPathPoint, output: number[]) => void): string {
             var result = [] as any[], tmp = [0, 0];
@@ -159,6 +142,10 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
             }
             return this.pathWidth;
         }
+        
+        public get weight() {
+            return this.weights[1];
+        }
     }
 
     class ChainPath implements IPath {
@@ -177,6 +164,11 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
             this.leafs = main.leafs;
             this.prev = prev;
         }
+
+        public get weight() {
+            return this.main.weights[1];
+        }
+
         prev: FlowPath | ChainPath;
         d(conv?: (input: IPathPoint, output: number[]) => void): string {
             var poff = this.prev.offset;
@@ -217,7 +209,7 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
 
         readonly id: string;
 
-        leafs: StringMap<number>;
+        leafs: Key[];
     }
 
     class FlowLayout implements ILayout {
@@ -246,10 +238,6 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
                 .concat(this._builder.offspring(path.id).map(nid => this._id2Path[nid]));
         }
 
-        public targets(path: FlowPath): StringMap<number> {
-            return path.leafs;
-        }
-
         public paths(scale?: Func<number, number>): IPath[] {
             if (scale) {
                 this._scale = scale;
@@ -270,13 +258,15 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
             return result;
         }
         
-        public build(scale?: Func<number, number>): IPath[] {
-            this._paths = this._builder.build();
-            this._id2Path = {};
-            for (var p of this._paths) {
-                this._id2Path[p.id] = p;
+        public build(weight?: Func<Key, number>): IPath[] {
+            if (weight) {
+                this._builder.reweight(weight);
+                for (let p of this._paths) {
+                    p.weights = p.nodes.map(n => n.weight);
+                    p.width(this._scale);
+                }
             }
-            return this.paths(this._scale = (scale || this._scale));
+            return this._paths;
         }
 
         public visit(v: Func<IPoint, void>): this {
@@ -583,14 +573,14 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
             while (nids.length > 0) {
                 var nid = nids.shift();
                 var parent = this.parent(this.node(nid));
-                var leafs = Object.keys(parent.leafs);
+                var leafs = parent.leafs;//.slice(0);
                 while (leafs.every(l => marks[l])) {
                     nid = parent.nid;
                     parent = this.parent(parent);
-                    leafs = Object.keys(parent.leafs);
+                    leafs = parent.leafs;//.slice(0);
                 }
                 result.push(nid);
-                for (var key of Object.keys(this.node(nid).leafs)) {
+                for (var key of this.node(nid).leafs) {
                     delete marks[key];
                 }
                 nids = Object.keys(marks).map(k => this._key2Leaf[k].nid);
@@ -615,28 +605,23 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
             }
             
             var collectLeafInfo = (n: FlowNode) => {
-                var info = {} as StringMap<number>;
                 if (n.type === NodeTypes.Leaf) {
-                    info[n.key] = n.weight;
-                    n.leafs = info;
+                    n.leafs = [n.key];
                     this._key2Leaf[n.key] = n;
                     return;
                 }
+                let info = [] as Key[];
                 if (n.PChild) {
                     if (!n.PChild.leafs) {
                         collectLeafInfo(n.PChild);
                     }
-                    for (var k of Object.keys(n.PChild.leafs)) {
-                        info[k] = n.PChild.leafs[k];
-                    }
+                    info.push(...n.PChild.leafs);
                 }
                 if (n.MChild) {
                     if (!n.MChild.leafs) {
                         collectLeafInfo(n.MChild);
                     }
-                    for (var k of Object.keys(n.MChild.leafs)) {
-                        info[k] = n.MChild.leafs[k];
-                    }
+                    info.push(...n.MChild.leafs);
                 }
                 n.leafs = info;
             };
@@ -651,13 +636,13 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
                         this._nid2Node[n.nid] = n;
                         this._offspring.push(n);
                     }
-                    var p = this.parent(n);
-                    if (!roots[n.nid] && p && roots[p.nid]) {                        
-                        var s = 0;
-                        for (var k of Object.keys(n.leafs)) {
-                            s += n.leafs[k];
-                        }
-                    }
+                    // var p = this.parent(n);
+                    // if (!roots[n.nid] && p && roots[p.nid]) {
+                    //     var s = 0;
+                    //     for (var k of Object.keys(n.leafs)) {
+                    //         s += n.leafs[k];
+                    //     }
+                    // }
                 }
             };
 
@@ -682,6 +667,8 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
                 return this._nid2pare[node.nid];
             }
         }
+    
+        
     }
 
     class EdgeSmoother {
@@ -1045,7 +1032,8 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
         public radius: number;
         public theta: number;
         public weight: number;
-        public leafs: StringMap<number>;
+        public leafs: Key[];
+        // public leafs: StringMap<number>;
         public type: string;
         public nid: string;
         public PChild: FlowNode;
@@ -1226,7 +1214,7 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
         public createJointNode(polar: Polar, childMinus: FlowNode, childPlus: FlowNode): FlowNode {
             var weight = childMinus == null ? 0 : childMinus.weight;
             weight += childPlus == null ? 0 : childPlus.weight;
-            var leafs = {};
+            // var leafs = {};
             var ret = FlowNode.FromPolar(this._source, polar, weight, NodeTypes.Joint);
             ret.PChild = childPlus;
             ret.MChild = childMinus;
@@ -1656,6 +1644,7 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
                 var gran = this._nodes.parent(pare);
 
                 var path = result[i] = new FlowPath();
+                path.nodes   = [pare, self];
                 path.id      = self.nid;
                 path.weights = [pare.weight, self.weight];
                 path.leafs   = self.leafs;
@@ -1698,6 +1687,37 @@ export function layout(source: IPoint, targets: IPoint[], weights?: number[]): I
                 }
             }
             return result;
+        }
+
+        public reweight(weight: Func<Key, number>) {
+            let info = {} as StringMap<number>;
+            let update = (n: FlowNode) => {
+                let sum = 0;
+                if (n.type === NodeTypes.Leaf) {
+                    sum += weight(n.key);
+                }
+                else {
+                    if (n.PChild) {
+                        if (n.PChild.nid in info) {
+                            sum += info[n.PChild.nid];
+                        }
+                        else {
+                            sum += update(n.PChild);
+                        }
+                    }
+                    if (n.MChild) {
+                        if (n.MChild.nid in info) {
+                            sum += info[n.MChild.nid];
+                        }
+                        else {
+                            sum += update(n.MChild);
+                        }
+                    }    
+                }
+                n.weight = info[n.nid] = sum;
+                return sum;
+            }
+            update(this._nodes.root);
         }
 
         public visit(v: Func<IPoint, void>): this {

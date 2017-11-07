@@ -1,33 +1,29 @@
-/// <reference path="../../node_modules/bingmaps/scripts/MicrosoftMaps/Microsoft.Maps.All.d.ts" />
-/// <reference path="../d3/ext.d.ts" />
-import { ILocation, IArea, Converter } from 'bing';
-import { keys, IPoint } from '../type';
+import { ILocation, IArea, IBound } from 'bing';
+import { anchorPixel, bound, anchor, fitOptions, area } from './converter';
+import { keys, IPoint, partial } from '../type';
+import { translate } from 'd3/attr';
+import { select, Any } from 'd3-selection';
 type Map = Microsoft.Maps.Map;
 type Action<T> = (i: T) => void;
 
-export function append(map: Map, tag: string): d3.Any {
-    return d3.select(map.getRootElement()).append(tag)
-        .style('pointer-events', 'none')    
-        .att.tabIndex(-1)
-        .sty.position('absolute')
-        .sty.visibility('inherit')
-        .sty.user_select('none');
+interface IMapElement {
+    forest  : boolean,
+    label   : boolean,
+    road    : "color" | "gray" | 'gray_label' | "hidden",
+    icon    : boolean,
+    area    : boolean,
+    building: boolean,
+    city    : boolean
 }
 
-interface IMapFormat {
-    type   : 'aerial' | 'road',
-    lang   : string,
-    pan    : boolean,
-    zoom   : boolean,
-    scale  : boolean,
-    cright : boolean,
-    forest : boolean,
-    label  : boolean,
-    road   : "color" | "gray" | 'gray_label' | "hidden",
-    icon   : boolean,
-    area   : boolean,
-    city   : boolean
+interface IMapControl {
+    type    : 'aerial' | 'road' | 'grayscale' | 'canvasDark' | 'canvasLight',
+    lang    : string,
+    pan     : boolean,
+    zoom    : boolean
 }
+
+interface IMapFormat extends IMapControl, IMapElement { }
 
 export function defaultZoom(width: number, height: number): number {
     var min = Math.min(width, height);
@@ -39,41 +35,50 @@ export function defaultZoom(width: number, height: number): number {
     return level;
 }
 
-
 export function pixel(map: Microsoft.Maps.Map, loc: ILocation, ref?: Microsoft.Maps.PixelReference) {
-    var coord = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
-    return map.tryLocationToPixel(coord, ref) as IPoint;
+    var x = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
+    return map.tryLocationToPixel(x, ref) as IPoint;
 }
 
 export class MapFormat implements IMapFormat {
-    type = 'road' as 'aerial' | 'road';
-    lang = 'default';
-    pan = true;
-    zoom = true;
-    scale = true;
-    cright = false;
-    city = false;
-    road = "gray" as "color" | "gray" | 'gray_label' | "hidden";
-    label = true;
-    forest = true;
-    icon = false;
-    area = false;
+    type     = 'road' as 'aerial' | 'road' | 'grayscale' | 'canvasDark' | 'canvasLight';
+    lang     = 'default';
+    pan      = true;
+    zoom     = true;
+    city     = false;
+    road     = "color" as "color" | "gray" | 'gray_label' | "hidden";
+    label    = true;
+    forest   = true;
+    icon     = false;
+    building = false;
+    area     = false;
     
     public static build(...fmts: any[]): MapFormat {
         var ret = new MapFormat();
-        for (var f of fmts) {
-            if (f) {
-                for (var key in ret) {
-                    if (key in f) {
-                        ret[key] = f[key];
-                    }
-                }
+        for (let f of fmts.filter(v => v)) {
+            for (var key in ret) {
+                key in f && (ret[key] = f[key]);
             }
         }
         return ret;
     }
-}
 
+    public static control<T>(fmt: MapFormat, extra: T): IMapControl & T {
+        let result = partial(fmt, ['type', 'lang', 'pan', 'zoom']) as any;
+        for (let key in extra) {
+            result[key] = extra[key];
+        }
+        return result;
+    }
+
+    public static element<T>(fmt: MapFormat, extra: T): IMapElement & T {
+        let result = partial(fmt, ['road', 'forest', 'label', 'city', 'icon', 'building', 'area']) as any;
+        for (let key in extra) {
+            result[key] = extra[key];
+        }
+        return result;
+    }
+}
 
 export function coordinate(map: Microsoft.Maps.Map, pixel: IPoint) {
     var pnt = new Microsoft.Maps.Point(pixel.x, pixel.y);
@@ -87,8 +92,11 @@ export var capability = {
             "type": {
                 "displayName": "Type", "type": {
                     "enumeration": [
-                        { "displayName": "Aerial", "value": "aerial" },
-                        { "displayName": "Road", "value": "road" }
+                        {"displayName": "Aerial", "value": "aerial"},
+                        {"displayName": "Color", "value": "road"},
+                        {"displayName": "Gray", "value": "grayscale"},
+                        {"displayName": "Dark", "value": "canvasDark"},
+                        {"displayName": "Light", "value": "canvasLight"}
                     ]
                 }
             },
@@ -119,9 +127,7 @@ export var capability = {
                 }
             },
             "pan": { "displayName": "Pan", "type": { "bool": true } },
-            "zoom": { "displayName": "Zoom", "type": { "bool": true } },
-            "scale": { "displayName": "Scale bar", "type": { "bool": true } },
-            "cright": { "displayName": "Copyright", "type": { "bool": true } }
+            "zoom": { "displayName": "Zoom", "type": { "bool": true } }
         }
     },
     "mapElement": {
@@ -141,6 +147,7 @@ export var capability = {
             "label": { "displayName": "Label", "type": { "bool": true } },
             "city": { "displayName": "City", "type": { "bool": true } },
             "icon": { "displayName": "Icon", "type": { "bool": true } },
+            "building": { "displayName": "Building", "type": { "bool": true } },
             "area": { "displayName": "Area", "type": { "bool": true } }
         }
     }
@@ -152,7 +159,7 @@ function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Ma
         credentials: 'Your Bing Key',
         showDashboard: false,
         showTermsLink: false,
-        showScalebar: fmt.scale,
+        // showScalebar: fmt.scale,
         showLogo: false,
         customMapStyle: customStyle(fmt),
         disablePanning: !fmt.pan,
@@ -173,11 +180,12 @@ function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Ma
 }
 
 function mapType(v: IMapFormat) {
-    if (v.type === 'aerial') {
-        return Microsoft.Maps.MapTypeId.aerial;
-    }
-    else {
-        return Microsoft.Maps.MapTypeId.road;
+    switch (v.type) {
+        case 'aerial'     : return Microsoft.Maps.MapTypeId.aerial;
+        case 'road'       : return Microsoft.Maps.MapTypeId.road;
+        case 'canvasDark' : return Microsoft.Maps.MapTypeId.canvasDark;
+        case 'canvasLight': return Microsoft.Maps.MapTypeId.canvasLight;
+        case 'grayscale'  : return Microsoft.Maps.MapTypeId.grayscale;
     }
 }
 
@@ -194,6 +202,10 @@ function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
             trail: nothing
         }
     } as Microsoft.Maps.ICustomMapStyle;
+    if (!v.building) {
+        result.elements.structure = { visible: false };
+        result.elements.building = { visible: false };
+    }
     result.elements.mapElement = { labelVisible: v.label };
     result.elements.political = { labelVisible: v.label, visible: true };
     result.elements.district = { labelVisible: v.label, visible: true };
@@ -223,34 +235,9 @@ function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
     return result;
 }
 
-export interface ILayer {
-    reset(map: Microsoft.Maps.Map);
-    transform(map: Microsoft.Maps.Map, tzoom:number);
-    resize(map: Microsoft.Maps.Map);
-}
-
-function delay<T extends Function>(action: T, empty: () => boolean): T {
-    var handler = null as number;
-    return function () {
-        if (handler) {
-            clearInterval(handler);
-            handler = null;
-        }
-        var args = arguments;
-        if (empty()) {
-            handler = window.setInterval(() => {
-                if (empty()) {
-                    return;
-                }
-                action.apply(this, args);
-                clearInterval(handler);
-                handler = null;
-            }, 40);            
-        }
-        else {
-            action.apply(this, args);
-        }
-    } as any;
+export interface IListener {
+    transform?(map: Microsoft.Maps.Map, pzoom: number, end?: boolean);
+    resize?(map: Microsoft.Maps.Map);
 }
 
 export class Controller {
@@ -258,60 +245,87 @@ export class Controller {
     private _map: Map;
     private _fmt: IMapFormat;
 
+    public get map() {
+        return this._map;
+    }
+
     public get format() {
         return this._fmt;
     }
 
-    public pixel(loc: ILocation): IPoint {
-        return pixel(this._map, loc);
+    private _svg: Any;
+    private _svgroot: Any;
+    public get svg() {
+        return this._svgroot;
+    }
+    private _canvas: Any;
+    public get canvas() {
+        return this._canvas;
     }
 
-    private _arrange(legend: d3.Any, topLegend: boolean, legendHeight: number, mapHeight: number) {
-        if (topLegend) {
-            d3.select(this._div).sty.margin_top(legendHeight + 'px');
-            d3.select(this._div).select('.bottomRightOverlay')
-                .sty.margin_bottom(legendHeight + 'px');
-            legend.sty.margin_top('0px');
+    public location(p: IPoint): ILocation {
+        let pnt = new Microsoft.Maps.Point(p.x, p.y);
+        return this._map.tryPixelToLocation(pnt) as ILocation;
+    }
+
+    public pixel(loc: ILocation | IBound, ref?: Microsoft.Maps.PixelReference): IPoint {
+        if ((loc as IBound).anchor) {
+            return anchorPixel(this._map, loc as any);
         }
         else {
-            d3.select(this._div).sty.margin_top(0 - legendHeight + 'px');
-            d3.select(this._div).select('.bottomRightOverlay')
-                .sty.margin_bottom('0px');
-            legend.sty.margin_top(mapHeight - legendHeight + 'px');
+            return pixel(this._map, loc as any, ref);
         }
     }
 
-    public arrange(legend: d3.Any, topLegend: boolean, legendHeight: number, mapHeight: number) {
-        this._formapMargins(legend, topLegend, legendHeight, mapHeight);
-    }
-    
-    private _formapMargins = delay(this._arrange, () => d3.select(this._div).select('.bottomRightOverlay').empty());    
-    private _formatCopyright = delay(
-        () => d3.select(this._div).select('#CopyrightControl').sty.display(this._fmt.cright ? null : 'none'),
-        () => d3.select(this._div).select('#CopyrightControl').empty()
-    );
-    private _formatScaleBar = delay(
-        () => d3.select(this._div).select('#ScaleBarId').sty.display(this._fmt.scale ? null : 'none'),
-        () => d3.select(this._div).select('#ScaleBarId').empty()
-    );
-
-    private _layer: ILayer;
-
-    public layer(v: ILayer): void {
-        if (this._layer) {
-            console.log('lava: a layer is already set');
-        }            
-        this._layer = v;
-        if (this._map) {
-            this._layer.reset(this._map);
-            this._layer.resize(this._map);
-        }
+    public anchor(locs: ILocation[]) {
+        return anchor(locs);
     }
 
-    constructor(div: HTMLDivElement, change?:Action<Map>) {
+    public area(locs: ILocation[], level = 20) {
+        return area(locs, level);
+    }
+
+    public bound(locs: ILocation[]): IBound {
+        return bound(locs);
+    }
+   
+    // private _layer: ILayer;
+    private _listener =[] as IListener[];
+    public add(v: IListener) {
+        this._listener.push(v);
+    }
+
+    // public layer(v?: ILayer): ILayer {
+    //     return null;
+    //     // if (v === undefined) {
+    //     //     return this._layer;
+    //     // }
+    //     // if (this._layer) {
+    //     //     console.log('lava: a layer is already set');
+    //     // }            
+    //     // this._layer = v;
+    //     // this._map && this._layer.reset(this._map);
+    //     // return this._layer;
+    // }
+
+    public fitView(areas: IBound[]) {
+        var width = this._map.getWidth(), height = this._map.getHeight();
+        this._map.setView(fitOptions(areas, { width, height }));
+        this._viewChange(false);
+    }
+
+    constructor(div: HTMLDivElement) {
         this._fmt = {} as IMapFormat;
         this._div = div;
-        this._changed = change;
+        let config = (root: d3.Any) => {
+            root.att.tabIndex(-1).sty.pointer_events('none')
+                .sty.position('absolute').sty.visibility('inherit')
+                .sty.user_select('none');
+            return root;
+        };
+        this._canvas = config(select(div).append('canvas'));
+        this._svg = config(select(div).append('svg'));
+        this._svgroot = this._svg.append('g').att.id('root');
         __lavaBuildMap = () => {
             // console.log('begin lava build map');
             var n = window['InstrumentationBase'];
@@ -331,96 +345,55 @@ export class Controller {
     }
     
     private _remap(): Map {
-        var para = parameter(this._map, this._fmt, this._div);
-        d3.select(this._div).select('div').remove();
-        var map = new Microsoft.Maps.Map(this._div, para);
-        if (this._map) {
-            var old = this._map;
-            Microsoft.Maps.Events.removeHandler(this._changeHandler);
-            Microsoft.Maps.Events.removeHandler(this._endHandler);
-            setTimeout(function () { old.dispose(); }, 1000);
+        var setting = parameter(this._map, this._fmt, this._div);
+        select(this._div).select('div').remove();
+        let map = new Microsoft.Maps.Map(this._div, setting);
+        let Events = Microsoft.Maps.Events;
+        if (this._map && this._handler1) {
+            Events.removeHandler(this._handler1);
+            Events.removeHandler(this._handler2);
+            Events.removeHandler(this._handler3);
         }
-        this._map = map;
-        this._changeHandler = Microsoft.Maps.Events.addHandler(map, 'viewchange', () => {
-            this.viewChange();
-        });
-        this._endHandler = Microsoft.Maps.Events.addHandler(map, 'viewchangeend', () => {
-            this.viewChange();
-        });
-        if (this._layer) {
-            this._layer.reset(this._map);
-            this._layer.resize(this._map);
-        }
-        this._formatCopyright();
-        return map;
-    }
-
-    private _endHandler = null as Microsoft.Maps.IHandlerId;
-    viewChange(extraChange = true) {
-        var width = this._map.getWidth(), height = this._map.getHeight();
-        if (extraChange && this._layer && this._changed) {
-            this._changed(this._map);
-        }
-        if (this._width !== width || this._height !== height) {
-            this.tryResize();
-            if (this._zoom !== zoom) {
-                this._tzoom = this._zoom = zoom;
-                this._layer && this._layer.transform(this._map, zoom);
-            }
+        map.getRootElement().appendChild(this._canvas.node());
+        map.getRootElement().appendChild(this._svg.node());
+        if (!this._map) {//only for the first time, call resize
+            this._map = map;
+            this._resize();
         }
         else {
-            var zoom = this._map.getZoom();
-            if (this._zoom !== zoom) {
-                if (this._zoom > zoom) {
-                    this._tzoom = Math.floor(zoom);
-                }
-                else {
-                    this._tzoom = Math.ceil(zoom);
-                }
-                this._layer && this._layer.transform(this._map, this._tzoom);
-                this._zoom = zoom;
-            }
-            else {
-                this._layer && this._layer.transform(this._map, this._tzoom);
-            }
+            this._map = map;
         }
+        this._handler1 = Events.addHandler(map, 'viewchange', () => this._viewChange(false));
+        this._handler2 = Events.addHandler(map, 'viewchangeend', () => this._viewChange(true));
+        this._handler3 = Events.addHandler(map, 'mapresize', () => this._resize());
+        return map;
+    }
+    private _handler1: Microsoft.Maps.IHandlerId;
+    private _handler2: Microsoft.Maps.IHandlerId;
+    private _handler3: Microsoft.Maps.IHandlerId;
+
+    private _viewChange(end = false) {
+        let zoom = this._map.getZoom();
+        for (let l of this._listener) {
+            l.transform && l.transform(this._map, this._zoom, end);
+        }
+        this._zoom = zoom;
     }
 
-    private _tzoom: number;
-    private _changed: Action<Map>;
     private _zoom: number;
-    private _width: number;
-    private _height: number;
 
-    public tryResize(): void {
+    private _resize(): void {
         if (!this._map) {
             return;
         }
-        if (this._map.getWidth() !== this._width || this._height !== this._map.getHeight()) {
-            this._width = this._map.getWidth();
-            this._height = this._map.getHeight();
-            this._layer && this._layer.resize(this._map);
+        let w = this._map.getWidth(), h = this._map.getHeight();
+        this._svg.att.width(w).att.height(h);
+        this._canvas.att.width(w).att.height(h);
+        this._svgroot.att.transform(translate(w / 2, h / 2));
+        for (let l of this._listener) {
+            l.resize && l.resize(this._map);
         }
     }
-
-    public fitView(areas: IArea[]) {
-        var width = this._map.getWidth(), height = this._map.getHeight();
-        if (areas.length < 1) {
-            var config = {
-                zoom: defaultZoom(width, height),
-                center: new Microsoft.Maps.Location(0, 0),
-                animate: false
-            } as Microsoft.Maps.IViewOptions;
-        }
-        else {
-            var config = Converter.fit(areas, { width, height }) as Microsoft.Maps.IViewOptions;
-        }
-        //even level 1 is not enough, so directly use 
-        this._map.setView(config);
-        this.viewChange();
-    }
-
-    private _changeHandler: Microsoft.Maps.IHandlerId;
 
     private _then: Action<Map>;
     restyle(fmt: Partial<IMapFormat>, then?: Action<Map>) {
@@ -435,13 +408,13 @@ export class Controller {
             return;
         }
         if ('lang' in dirty || !this._map) {
-            d3.select('#mapscript').remove();
-            d3.select('head').selectAll('link').filter(function () {
-                var src = d3.select(this).attr('href') as string;
+            select('#mapscript').remove();
+            select('head').selectAll('link').filter(function () {
+                var src = select(this).attr('href') as string;
                 return src && src.indexOf('www.bing.com') > 0;
             }).remove();
-            d3.select('head').selectAll('script').filter(function () {
-                var src = d3.select(this).attr('src') as string;
+            select('head').selectAll('script').filter(function () {
+                var src = select(this).attr('src') as string;
                 return src && src.indexOf('www.bing.com') > 0;
             }).remove();
 
@@ -458,7 +431,7 @@ export class Controller {
             document.body.appendChild(script);
             return;
         }
-        var remap = { label: 1, forest: 1, road: 1, city: 1, icon: 1, area: 1};
+        var remap = { label: 1, forest: 1, road: 1, city: 1, icon: 1, area: 1, building: 1 };
         for (var k in dirty) {
             if (k in remap) {
                 setTimeout(() => then(this._remap()), 0);
@@ -476,14 +449,9 @@ export class Controller {
         if ('type' in dirty) {
             setTimeout(() => this._map.setView({ mapTypeId: mapType(this._fmt) }), 0);
         }
-        setTimeout(() => {
-            this._formatCopyright();
-            this._formatScaleBar();
-        }, 0);
         if (Object.keys(options).length) {
             setTimeout(() => this._map.setOptions(options), 0);
         }
-        this.viewChange();
         then(null);
         return;
     }

@@ -1,22 +1,22 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es5",
+        "allowJs": true,
         "module": "es2015",
-        "sourceMap": true,
+        "sourceMap": false,
         "moduleResolution": "node",
+        "outDir": ".bundle",
         "baseUrl": ".",
         "paths": {
             "*": [
-                "./PowerBI/.lib/*",
+                "./src/.lib/*",
                 "./lava/*"
             ]
-        },
-        "noEmit": true
+        }
     },
-    "include": [
-        "./PowerBI/Flowmap/src/*.ts"
-    ],
     "files": [
-        "./lava/d3/ext.d.ts"
+        "./lava/d3/v4.ext.d.ts",
+        "visual/.api/v1.6.0/PowerBI-visuals.d.ts",
+        "src/visual.ts"
     ]
 }

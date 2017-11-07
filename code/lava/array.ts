@@ -1,6 +1,6 @@
 import { Func } from './type';
 
-export function sum(data: any[], map?: (d: any) => number, filter?: number[] | 'all'): number {
+export function sum<T>(data: T[], map?: (d: T) => number, filter?: number[] | 'all'): number {
     let ret = 0, [start, end] = startend(data, filter);
     start = start || 0;
     end = end || (data.length - 1);
@@ -12,7 +12,7 @@ export function sum(data: any[], map?: (d: any) => number, filter?: number[] | '
     }
     else {
         for (let i = start; i <= end; i++) {
-            ret += (data[i] || 0);
+            ret += (data[i] as any || 0);
         }
         return ret;
     }
@@ -78,7 +78,7 @@ export function repeat<T>(val: T, count: number): T[] {
 
 export function min<T>(data: T[], map?: (d: T) => number, filter?: number[] | 'all'): number {
     let [start, end] = startend(data, filter);
-    let min = Number.MAX_VALUE, tmp: number;
+    let min = Number.POSITIVE_INFINITY, tmp: number;
     if (map) {
         for (; start <= end; start++) {
             if ((tmp = map(data[start])) != null && tmp < min) {
@@ -119,6 +119,34 @@ export function ext<T>(data: T[], map?: (d: T) => number, filter?: number[] | 'a
             min = tmp;
     }
     return [min, max, max - min];
+}
+
+export function extent(data: number[]): number[] & { delta: number };
+export function extent<T>(data: T[], map: (d: T) => number, filter?: number[] | 'all'): number[] & { delta: number };
+export function extent<T>(data: T[], map?: (d: T) => number, filter?: number[] | 'all'): number[] & { delta: number } {
+    let [start, end] = startend(data, filter);
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+    let tmp: number, i = 0;
+    //find first valid number
+    for (i = start || 0; i <= end; i++) {
+        tmp = map ? map(data[i]) : <any>data[i];
+        if (tmp < min) {
+            min = max = tmp;
+            i++;
+            break;
+        }
+    }
+    for (; i <= end; i++) {
+        tmp = map ? map(data[i]) : <any>data[i];
+        if (tmp > max)
+            max = tmp;
+        else if (tmp < min)
+            min = tmp;
+    }
+    let result = [min, max];
+    result['delta'] = max - min;
+    return result as any;
 }
 
 function startend<T>(data: T[], filter?: number[] | 'all' | null): number[] {

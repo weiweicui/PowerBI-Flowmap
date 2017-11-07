@@ -32,8 +32,8 @@ export type StringMap<T> = { [k: string]: T };
 export type Func<I, O>   = (i: I) => O;
 
 
-export function dateLabel(values: Date[]): (v: Date) => string {
-    var valids = select(values, v => v && v instanceof Date);
+export function dateString(values: Date[]): (v: Date) => string {
+    var valids = values.filter(v => v && v instanceof Date);
     if (valids.length === 0) {
         return d => d + "";
     }
@@ -75,9 +75,29 @@ export function dateLabel(values: Date[]): (v: Date) => string {
     }
 }
 
-export function keys(a: any): string[] {
-    return Object.keys(a);
+export function keys(...data: StringMap<any>[]): string[] {
+    let result = {} as StringMap<true>;
+    for (let d of data) {
+        for (let k in d) {
+            result[k] = true;
+        }
+    }
+    return Object.keys(result);
 }
+
+// export function keys(a: any): string[] {
+//     return Object.keys(a);
+// }
+
+// export function mark(...data: StringMap<any>[]): StringMap<true> {
+//     let result = {} as StringMap<true>;
+//     for (let d of data) {
+//         for (let k in d) {
+//             result[k] = true;
+//         }
+//     }
+//     return result;
+// }
 
 export function sameKeys(a: any, b: any): boolean {
     let keys = Object.keys(a);
@@ -131,7 +151,7 @@ export function match<A, B>(exist: StringMap<A>, desire: StringMap<B>, remove: (
 }
 
 
-export function dict(values: string[]): StringMap<string>;
+export function dict(values: string[] | number[] | (string | number)[]): StringMap<string>;
 export function dict<K>(values: K[], key: Func<K, string | number>): StringMap<K>;
 export function dict<K, V>(values: K[], key: Func<K, string | number>, val: Func<K, V>): StringMap<V>;
 export function dict<K, V>(values: K[], key?: Func<K, string | number>, val?: Func<K, V>): StringMap<V> {
@@ -157,12 +177,50 @@ export function sequence(start: number, count: number): number[] {
     return result;
 }
 
+export function obj(key: string, val: any): StringMap<string> {
+    let result = {};
+    result[key] = val;
+    return result;
+}
 
-export function select<T>(data: T[], where: Func<T, boolean>): T[] {
-    var ret = [] as T[];
-    for (var v of data) {
-        if (where(v)) {
-            ret.push(v);
+export function find<T>(data: T[], p: Func<T, any>): T {
+    for (let v of data) {
+        if (p(v)) return v;
+    }
+    return undefined;
+}
+
+export function groupBy<T>(rows: T[], group: Func<T, any>):StringMap<T[]> {
+    let result = {} as StringMap<T[]>;
+    for (let r of rows) {
+        let key = group(r);
+        if (key in result) {
+            result[key].push(r);
+        }
+        else {
+            result[key] = [r];
+        }
+    }
+    return result;
+}
+
+export function remap<I, O>(input: StringMap<I>, map: (key: string, val: I) => O): StringMap<O> {
+    let result = {} as StringMap<O>;
+    for (let key in input) {
+        result[key] = map(key, input[key]);
+    }
+    return result;
+}
+
+export function pick<I, O>(data: I[], conv: Func<I, O>, where?: Func<I, any>): O[] {
+    var ret = [] as O[];
+    if (where) {
+        return data.filter(where).map(conv);
+    }
+    for (let v of data) {
+        let o = conv(v);
+        if (o !== undefined && o !== null) {
+            ret.push(o);
         }
     }
     return ret;
@@ -172,13 +230,14 @@ export function values<T>(a: StringMap<T>): T[] {
     return Object.keys(a).map(k => a[k]);
 }
 
-export function pick<T>(a: T, keys: (keyof T)[]): Partial<T> {
+export function partial<T>(a: T, keys: (keyof T)[]): Partial<T> {
     var ret = {} as T;
     for (var key of keys) {
         ret[key] = a[key];
     }
     return ret;
 }
+
 
 var idCache = {} as StringMap<string>;
 export function randomID(key?: string) {

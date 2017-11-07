@@ -17,7 +17,7 @@ export default class GeoQuery {
         return this._addrs.length;
     }
 
-    run(each: Func<ILocation, void>): void {
+    run(each: Func<ILocation, void>): this {
         var callback = (loc: ILocation) => {
             if (this._addrs) {
                 each(loc);
@@ -33,5 +33,6 @@ export default class GeoQuery {
                 geo.query(addr, callback);
             }
         }
+        return this;
     }
 }
