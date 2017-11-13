@@ -51,6 +51,9 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * Refine the **Bubble - Scale**. Use sigmoid function to scale bubble sizes when they are too large or too small.
 * Update 1.3.2:
     * Add a **Color - (Autofill)** switch. It only shows when color field is categorical. It will automatically give distinct colors to unspecified categories.
+* Update 1.3.3:
+    * Fix a bug that map related formats cannot remember settings.
+
 
 ## How to Use (Latest Version)
 * Required fields:
