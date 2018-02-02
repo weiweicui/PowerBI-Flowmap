@@ -141,8 +141,8 @@ export let $cfg = {
 } as IConfig;
 
 let root = null as Any;
-export function init(div: HTMLDivElement, done: Func<Microsoft.Maps.Map, void>) {
-    $fmt = new Format();
+export function init(div: HTMLDivElement, fmt: Format, done: Func<Microsoft.Maps.Map, void>) {
+    $fmt = fmt;
     root = select(div);
     root.append('div').att.id('view').sty.width('100%').sty.height('100%');
     root.append('div').att.id('mark');

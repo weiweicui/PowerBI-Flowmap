@@ -20,7 +20,7 @@ let msgs = {
 
 export class Legend {
 
-    private _svg: d3.Any;
+    private _svg: Any;
     private _banner: Banner<DistinctColor>;
     
     constructor(div: d3.Any) {

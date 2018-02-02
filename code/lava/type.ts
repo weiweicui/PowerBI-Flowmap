@@ -45,24 +45,30 @@ export function dateString(values: Date[]): (v: Date) => string {
     var secs = valids.map(v => v.getSeconds());
     var same = (vals: number[]) => {
         var first = vals[0];
-        return vals.some(v => v !== first);
+        return vals.every(v => v === first);
     }
-    var hm = (v: Date) => v.getHours() + ':' + v.getMinutes();
-    var hms = (v: Date) => v.getHours() + ':' + v.getMinutes() + ':' + v.getSeconds();
-    var dmy = (v: Date) => v.getDate() + '/' + (v.getMonth() + 1) + '/' + v.getFullYear();
+    var zero = (vals: number[]) => vals.every(v => v === 0);
+
+    var str = (v: number) => v < 10 ? '0' + v : v;
+    var hm = (v: Date) => str(v.getHours()) + ':' + str(v.getMinutes());
+    var hms = (v: Date) => hm(v) + ':' + str(v.getSeconds());
+    var dm = (v: Date) => v.getDate() + '/' + (v.getMonth() + 1);
+    var dmy = (v: Date) => dm(v) + '/' + v.getFullYear();
+
     if (same(years)) {
-        if (same(months) && same(dates)) {
-            return same(secs) ? v => hm(v) + ' ' + dmy(v) : v => hms(v) + ' ' + dmy(v);
+        if (!zero(secs)) {
+            return v => dm(v) + ' ' + hms(v);
         }
-        else {
-            return v => dmy(v) + ' ' + hms(v);
+        if (!zero(mins) || !zero(hours)) {
+            return v => dm(v) + ' ' + hm(v);
         }
+        return v => dmy(v);
     }
     else {
-        if (!same(secs)) {
+        if (!zero(secs)) {
             return v => dmy(v) + ' ' + hms(v);
         }
-        if (!same(mins) || !same(hours)) {
+        if (!zero(mins) || !zero(hours)) {
             return v => dmy(v) + ' ' + hm(v);
         }
         if (!same(dates)) {

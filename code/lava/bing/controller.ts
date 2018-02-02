@@ -289,24 +289,10 @@ export class Controller {
         return bound(locs);
     }
    
-    // private _layer: ILayer;
     private _listener =[] as IListener[];
     public add(v: IListener) {
         this._listener.push(v);
     }
-
-    // public layer(v?: ILayer): ILayer {
-    //     return null;
-    //     // if (v === undefined) {
-    //     //     return this._layer;
-    //     // }
-    //     // if (this._layer) {
-    //     //     console.log('lava: a layer is already set');
-    //     // }            
-    //     // this._layer = v;
-    //     // this._map && this._layer.reset(this._map);
-    //     // return this._layer;
-    // }
 
     public fitView(areas: IBound[]) {
         var width = this._map.getWidth(), height = this._map.getHeight();
@@ -328,19 +314,9 @@ export class Controller {
         this._svgroot = this._svg.append('g').att.id('root');
         __lavaBuildMap = () => {
             // console.log('begin lava build map');
-            var n = window['InstrumentationBase'];
-            n.prototype.flush = function () {
-                if (n._timerToken) {
-                    window.clearTimeout(n._timerToken), n._timerToken = 0;
-                }
-                if (n.logList.length) {
-                    this.clear();
-                }
-            };
             this._remap();
             this._then && this._then(this._map);
             this._then = null;
-            // console.log('done lava build map');
         }
     }
     

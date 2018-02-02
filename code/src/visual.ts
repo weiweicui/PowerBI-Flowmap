@@ -388,7 +388,10 @@ export class Visual implements powerbi.extensibility.visual.IVisual {
             $cfg.location.manual = persist.manual.read(view, {});
             $cfg.mark.onChanged = keys => persist.banner.write(keys.sort(), 10);
             $cfg.mark.init && $cfg.mark.init(persist.banner.read(view, {}));
-            init(this._div, map => {
+            let fmt = new Format();
+            copy(ctx.fmt.mapControl.meta, fmt.mapControl);
+            copy(ctx.fmt.mapElement.meta, fmt.mapElement);
+            init(this._div, fmt, map => {
                 this._loading = false;//set to false befor calling update(...)
                 let view = this._options.dataViews[0];
                 let [center, zoom] = persist.map.read(view, []);
@@ -396,9 +399,7 @@ export class Visual implements powerbi.extensibility.visual.IVisual {
                 this.update(this._options);
             });
             $mapctl.add({
-                transform(m, p, e) {
-                    e && persist.map.write([m.getCenter(), m.getZoom()], 400);
-                }
+                transform(m, p, e) { e && persist.map.write([m.getCenter(), m.getZoom()], 400); }
             });
             return;
         }
