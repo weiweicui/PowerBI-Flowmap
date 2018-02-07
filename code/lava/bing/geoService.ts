@@ -318,13 +318,18 @@ export var settings = {
     // The bing geocoding doesn't support CORS and we need to use jsonp - a script injecting with source provided by bing. See TFS 3005333.
     // Occasionally bing sends malformed script body. This code will swallow these script errors, so will not popup in window alert.
     function captureBingErrors() {
-        var lastError: Function = window.onerror || (() => { });    
-        window.onerror = (msg: Object, url: string, line: number, column?: number, error?: any) => {
-            if (url.indexOf(settings.BingURL) != -1 || url.indexOf(settings.BingUrlGeodata) != -1) {
-                return false;
-            }
-            lastError(msg, url, line, column, error);
-        };
+        try {
+            var lastError: Function = window.window.onerror || (() => { });    
+            window.window.onerror = (msg: Object, url: string, line: number, column?: number, error?: any) => {
+                if (url.indexOf(settings.BingURL) != -1 || url.indexOf(settings.BingUrlGeodata) != -1) {
+                    return false;
+                }
+                lastError(msg, url, line, column, error);
+            };
+        }
+        catch(error) {
+            console.log(error);
+        }
     }
 
     reset();
