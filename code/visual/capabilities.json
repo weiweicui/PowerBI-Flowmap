@@ -144,7 +144,7 @@
         "style": {
             "displayName": "Visual style",
             "properties": {
-                "type":{
+                "style": {
                     "displayName": "Type",
                     "type": {
                         "enumeration": [

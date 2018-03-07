@@ -3,6 +3,8 @@ import { anchorPixel, bound, anchor, fitOptions, area } from './converter';
 import { keys, IPoint, partial } from '../type';
 import { translate } from 'd3/attr';
 import { select, Any } from 'd3-selection';
+
+
 type Map = Microsoft.Maps.Map;
 type Action<T> = (i: T) => void;
 

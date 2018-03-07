@@ -3,19 +3,21 @@
     "version": "1.0.0",
     "description": "root modules at git",
     "dependencies": {
-        "d3": "^4.8.0"
+        "d3": "4.8.0",
+        "rollup": "0.46.2",
+        "typescript": "2.7.1"
     },
     "devDependencies": {
         "@types/bingmaps": "0.0.0",
-        "@types/d3": "^4.8.0",
-        "@types/node": "^6.0.46",
-        "concurrently": "^3.5.0",
-        "fs-sync": "^1.0.4",
-        "mirror-folder": "^2.1.1",
-        "rollup": "^0.41.6",
-        "rollup-plugin-node-resolve": "^3.0.0",
-        "rollup-watch": "^4.3.1",
-        "thread-sleep": "^2.0.0"
+        "@types/d3": "4.8.0",
+        "@types/node": "6.0.46",
+        "concurrently": "3.5.0",
+        "fs-sync": "1.0.4",
+        "mirror-folder": "2.1.1",
+        "rollup": "0.41.6",
+        "rollup-plugin-node-resolve": "3.0.0",
+        "rollup-watch": "4.3.1",
+        "thread-sleep": "2.0.0"
     },
     "scripts": {
         "watch": "concurrent \"npm run tsc\" \"npm run rollup\" \"npm run pbi\"",
