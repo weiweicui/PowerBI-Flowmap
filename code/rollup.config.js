@@ -92,7 +92,7 @@ var append = {
     code = code.replace(/\.(att|sty)\.([\w_]+)\(/g, function (a, b, c) {
       return (b === 'att' ? '.attr(' : '.style(') + "'" + c.replace('_', '-') + "',";
     }).replace('use strict', '');
-    result += code + '\nvar ' + modulename + ' = this.' + modulename + ';\n';
+    result += code + '\nvar ' + modulename + ' = this.' + modulename + ' || ' + modulename + ';\n';
     return result;
   },
   resolveId: function (portee, porter) {
