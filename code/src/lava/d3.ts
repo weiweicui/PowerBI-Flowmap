@@ -336,6 +336,18 @@ class Attr<D = any> {
         }
     }
 
+    public fill_opacity(v: Value<D, number | null>): ISelex<D>;
+    public fill_opacity(): number
+    public fill_opacity(v?: Value<D, number | null>): any {
+        if (v !== undefined) {
+            this._sel.attr('fill-opacity', v as any);
+            return this._sel;
+        }
+        else {
+            return +this._sel.attr('fill-opacity');
+        }
+    }
+
     public stroke_opacity(v: Value<D, number | null>): ISelex<D>;
     public stroke_opacity(): number
     public stroke_opacity(v?: Value<D, number | null>): any {

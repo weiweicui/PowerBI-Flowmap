@@ -154,7 +154,12 @@ export class Context<R extends string, F> {
 
     public key(...roles: R[]): Func<number, string> {
         if (roles.length === 1) {
-            return this.cat(roles[0]).key;
+            if (this.cat(roles[0])) {
+                return this.cat(roles[0]).key;
+            }
+            else {
+                return r => "";
+            }
         }
         roles = roles.filter(r => this.cat(r));
         const keys = roles.map(r => this.cat(r).key);

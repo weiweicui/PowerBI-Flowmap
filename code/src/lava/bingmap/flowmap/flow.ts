@@ -126,8 +126,21 @@ class VisualFlow {
 }
 
 export function init(d3: ISelex): IListener {
-    root = d3;
-    return { transform: (ctl, pzoom) => { flows.forEach(v => v.transform(ctl.map, pzoom)); } }
+    const rect = d3.append('rect');
+    const remask = () => rect.att.width($state.mapctl.map.getWidth())
+        .att.height($state.mapctl.map.getHeight())
+        .att.x(0 - $state.mapctl.map.getWidth() / 2)
+        .att.y(0 - $state.mapctl.map.getHeight() / 2)
+        .att.fill_opacity(0.01)
+        .sty.pointer_events('none');
+    root = d3.append('g');
+    return {
+        transform: (ctl, pzoom) => {
+            flows.forEach(v => v.transform(ctl.map, pzoom));
+            remask();
+        },
+        resize: () => remask()
+    }
 }
 
 export function add(rows: number[]) {
