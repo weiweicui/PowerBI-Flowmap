@@ -53,6 +53,13 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
     * Add a **Color - (Autofill)** switch. It only shows when color field is categorical. It will automatically give distinct colors to unspecified categories.
 * Update 1.3.3:
     * Fix a bug that map related formats cannot remember settings.
+* Update 1.4.0:
+    * Update to custom visual api v2.6. This should fix some issues due to api issues. But since the implementation is changed a lot, bugs are expected. Please comment below if found.
+    * Remove the filter operation from this visual (i.e., now cannot click on legend or flows to highlight.)
+    * Show bubbles for self-linked flow. It still cannot show lines if the origin and destination are the same, but we can show a circle on the map if the bubble visualization is turned on.
+    * Remove **Bubble - For - Both** option.
+    * Add a **Map control - Type - Hidden** option to hide the underlying map completely.
+
 
 
 ## How to Use (Latest Version)

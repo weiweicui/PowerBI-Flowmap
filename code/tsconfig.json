@@ -1,22 +1,19 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "allowJs": true,
-        "module": "es2015",
-        "sourceMap": false,
+        "allowJs": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "target": "es6",
+        "sourceMap": true,
+        "outDir": "./.tmp/build/",
         "moduleResolution": "node",
-        "outDir": ".bundle",
-        "baseUrl": ".",
-        "paths": {
-            "*": [
-                "./src/.lib/*",
-                "./lava/*"
-            ]
-        }
+        "declaration": true,
+        "lib": [
+            "es2015",
+            "dom"
+        ]
     },
     "files": [
-        "./lava/d3/v4.ext.d.ts",
-        "visual/.api/v1.6.0/PowerBI-visuals.d.ts",
         "src/visual.ts"
     ]
 }
