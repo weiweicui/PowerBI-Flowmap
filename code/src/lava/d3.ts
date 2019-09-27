@@ -1,4 +1,3 @@
-import { IPoint, Func } from "./type";
 import { select, Selection, ValueFn, BaseType } from "d3";
 
 declare module 'd3-selection' {
@@ -8,11 +7,11 @@ declare module 'd3-selection' {
 }
 
 type Value<I, O> = ValueFn<any, I, O> | O;
+type IPoint = { x: number, y: number }
 
 export interface ISelex<D = any> extends Selection<any, D, any, any> {
     att: Attr<D>;
     sty: Style<D>;
-    // select(selector: any): Selection<any, D, any, any> & ISelex<D>;
     datum<NewDatum>(value: ValueFn<any, D, NewDatum>): ISelex<NewDatum>;
     datum<NewDatum>(value: NewDatum): ISelex<NewDatum>;
     datum(value: null): ISelex<D>;
@@ -28,16 +27,6 @@ export interface ISelex<D = any> extends Selection<any, D, any, any> {
     data<NewDatum>(data: NewDatum[]): ISelex<NewDatum>;
     data(): any;
 }
-
-// export type ISelex<D = any> = Selection<any, D, any, any> & {
-//     att: Attr<D>;
-//     sty: Style<D>;
-//     select(selector: BaseType | string): Selection<any, D, any, any> & ISelex<D>;
-//     selex(selector: BaseType | string): ISelex<D>;
-//     selexAll<T = D>(selector: BaseType | string): ISelex<T>;
-//     appendex<K extends keyof ElementTagNameMap, T = D>(tag: K, datum?: T): ISelex<T>;
-//     text(v: string): ISelex<D>;
-// }
 
 class Attr<D = any> {
     private _sel: ISelex<D>;

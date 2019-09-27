@@ -196,7 +196,7 @@ export class Visual implements IVisual {
         };
 
         app.events.doneGeocoding = locs => {
-            copy(locs, persist.geocode.value());
+            copy(locs, persist.geocode.value({}));
             if (this._ctx.fmt.advance.meta.cache) {
                 persist.geocode.write(persist.geocode.value(), 10);
             }
@@ -205,7 +205,7 @@ export class Visual implements IVisual {
         popups.events.onChanged = addrs => persist.banner.write(addrs, 10);
         pins.events.onDrag = (addr, loc) => {
             this._cfg.injections[addr] = loc;
-            persist.manual.value()[addr] = loc;
+            persist.manual.value({})[addr] = loc;
         };
         pies.events.onPieCreated = group => {
             tooltip.add(group, arg => helper.pieTooltip(arg.data.rows, arg.data.type, this._ctx));
@@ -254,7 +254,6 @@ export class Visual implements IVisual {
 
     private config(): Config {
         const config = new Config(), ctx = this._ctx;
-        // ctx.cat('Dest').data[2] = ctx.cat('Origin').data[2];
         /* #region  legend */
         override(ctx.fmt.legend.meta, config.legend);
         if (config.legend.show) {
@@ -271,6 +270,13 @@ export class Visual implements IVisual {
         override(ctx.fmt.valueFormat.meta, config.numberFormat);
         /* #endregion */
 
+        if (!ctx.cat('Origin')) {
+            config.error = '"Origin" field is required.';
+        }
+        else if (!ctx.cat('Dest')) {
+            config.error = '"Destination" field is required.'
+        }
+        
         /* #region  source, target, label */
         config.source = ctx.key('Origin');
         config.target = ctx.key('Dest');
@@ -289,7 +295,7 @@ export class Visual implements IVisual {
             sourceRole = 'Dest';
         }
         /* #endregion */
-
+        
         /* #region  color */
         if (!ctx.cat('color') || !ctx.fmt.color.meta.customize) {
             const color = ctx.fmt.color.value('item');
@@ -308,32 +314,6 @@ export class Visual implements IVisual {
             else {
                 config.color = ctx.fmt.color.property('item');
             }
-        }
-        /* #endregion */
-
-        /* #region  width */
-        if (!ctx.cat('width') || !ctx.fmt.width.meta.customize) {
-            const width = ctx.fmt.width.meta.item;
-            config.weight = { conv: _ => width, scale: null };
-        }
-        else if (ctx.cat('width').column.source.type.numeric) {
-            const values = ctx.cat('width').data as number[];
-            if (ctx.fmt.width.meta.scale === 'none') {
-                config.weight = { conv: r => values[r], unit: ctx.fmt.width.meta.unit, scale: 'none' };
-            }
-            else {
-                config.weight = {
-                    conv: r => values[r],
-                    scale: ctx.fmt.width.meta.scale,
-                    max: ctx.fmt.width.value('max'),
-                    min: ctx.fmt.width.value('min')
-                }
-            }
-        }
-        else {
-            //distinct
-            const width = ctx.fmt.width.property('item');
-            config.weight = { conv: r => width(r), scale: null };
         }
         /* #endregion */
 
@@ -360,6 +340,57 @@ export class Visual implements IVisual {
         }
         /* #endregion */
 
+        /* #region  width */
+        if (!ctx.cat('width') || ctx.cat('width').column.source.type.numeric) {
+            if (config.style !== 'flow' && !ctx.cat('width')) {
+                const width = ctx.fmt.width.meta.item;
+                config.weight = { conv: _ => width, scale: null };
+            }
+            else {
+                let conv = _ => 1;
+                if (ctx.cat('width')) {
+                    const values = ctx.cat('width').data as number[];
+                    conv = r => values[r];
+                }
+                if (ctx.fmt.width.meta.scale === 'none') {
+                    config.weight = { conv, unit: ctx.fmt.width.meta.unit, scale: 'none' };
+                }
+                else {
+                    config.weight = {
+                        conv,
+                        scale: ctx.fmt.width.meta.scale,
+                        max: ctx.fmt.width.value('max'),
+                        min: ctx.fmt.width.value('min')
+                    }
+                }
+            }
+        }
+        else {
+            //has width column and is district
+            if (ctx.fmt.width.meta.customize) {
+                const width = ctx.fmt.width.property('item');
+                config.weight = { conv: r => width(r), scale: null };
+            }
+            else {
+                const width = ctx.fmt.width.meta.item;
+                config.weight = { conv: _ => width, scale: null };
+            }
+        }
+        /* #endregion */
+
+        /* #region  update bubble.for if null */
+        copy(ctx.fmt.bubble.meta, config.bubble);
+        if (config.bubble.for === null) {
+            config.bubble.for = ctx.fmt.style.meta.direction !== 'in' ? 'dest' : 'origin';
+        }
+        if (config.bubble.for === 'origin' || config.bubble.for === 'both') {
+            config.bubble.out = ctx.key('Origin');
+        }
+        if (config.bubble.for === 'dest' || config.bubble.for === 'both') {
+            config.bubble.in = ctx.key('Dest');
+        }
+        /* #endregion */
+
         /* #region  collect groups and valid rows */
         let rows = ctx.rows();
         if (config.style === 'flow') {
@@ -375,20 +406,6 @@ export class Visual implements IVisual {
         }
         else {
             groups = values(groupBy(ctx.rows(), ctx.key(sourceRole)));
-        }
-
-        /* #endregion */
-
-        /* #region  update bubble.for if null */
-        copy(ctx.fmt.bubble.meta, config.bubble);
-        if (config.bubble.for === null) {
-            config.bubble.for = ctx.fmt.style.meta.direction !== 'in' ? 'dest' : 'origin';
-        }
-        if (config.bubble.for === 'origin' || config.bubble.for === 'both') {
-            config.bubble.out = ctx.key('Origin');
-        }
-        if (config.bubble.for === 'dest' || config.bubble.for === 'both') {
-            config.bubble.in = ctx.key('Dest');
         }
         /* #endregion */
 
@@ -417,9 +434,9 @@ export class Visual implements IVisual {
 
         override(deepmerge(ctx.config('mapControl'), ctx.config('mapElement')), config.map);
 
-        config.injections = Object.assign({}, persist.geocode.value());
+        config.injections = Object.assign({}, persist.geocode.value({}));
         copy(coords(ctx, 'Origin', 'OLati', 'OLong', coords(ctx, 'Dest', 'DLati', 'DLong', {})), config.injections);
-        copy(persist.manual.value(), config.injections);
+        copy(persist.manual.value({}), config.injections);
 
         copy(ctx.fmt.advance.meta, config.advance);
         config.groups = groups;
@@ -484,7 +501,7 @@ export class Visual implements IVisual {
                         persist.manual.write({}, 10);
                     }
                     else if (ctx.fmt.advance.dirty('cache') === 'on') {
-                        copy(app.$state.geocode, persist.geocode.value());
+                        copy(app.$state.geocode, persist.geocode.value({}));
                         persist.geocode.write(persist.geocode.value(), 10);
                         persist.manual.write(persist.manual.value(), 10);
                     }
@@ -553,6 +570,7 @@ export class Visual implements IVisual {
 
                 if (ctx.cat('width')) {
                     if (this._cfg.weight.scale === null) {
+                        //distict
                         if (ctx.fmt.width.meta.customize) {
                             leg.metas(['width']);
                             if (fmt.meta.width) {
@@ -569,13 +587,15 @@ export class Visual implements IVisual {
                     }
                 }
                 else {
-                    leg.conditionalMetas('width', ['width_label']);
+                    leg.metas(['width']);
+                    if (this._cfg.style !== 'flow') {
+                        leg.metas(['width_label']);
+                    }
                 }
                 return leg.dump();
             case 'style':
-                const flowStyle = this._cfg.style === 'flow';
                 return ctx.fmt.style.instancer(partial(this._cfg, ['style'])).metas(['style'])
-                    .conditionalMetas(flowStyle, ['direction', 'limit']).dump();
+                    .conditionalMetas(this._cfg.style === 'flow', ['direction', 'limit']).dump();
             case 'color':
                 const col = ctx.fmt.color.instancer().metas(['item']);
                 if (ctx.cat('color')) {
@@ -600,7 +620,7 @@ export class Visual implements IVisual {
                 return col.dump();
             case 'width':
                 const wid = ctx.fmt.width.instancer();
-                if (!ctx.cat('width')) {
+                if (!ctx.cat('width') && this._cfg.style !== 'flow') {
                     return wid.metas(['item']).dump();
                 }
                 if (this._cfg.weight.scale === null) {//district

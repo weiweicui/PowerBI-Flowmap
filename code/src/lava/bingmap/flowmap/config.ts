@@ -6,6 +6,7 @@ import { MapFormat } from "../controller";
 
 type Func<T = string> = (i: number) => T;
 export class Config {
+    error = null as string;
     advance = new Format().advance as Omit<Format['advance'], 'cache'>;
     style = null as Format['style']['style'];
     source = null as Func;

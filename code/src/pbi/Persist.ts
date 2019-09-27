@@ -39,7 +39,10 @@ export class Persist<T> {
         return false;
     }
 
-    public value(): T {
+    public value(deft?: T): T {
+        if (this._value === null && deft !== undefined) {
+            return this._value = deft;
+        }
         return this._value;
     }
 

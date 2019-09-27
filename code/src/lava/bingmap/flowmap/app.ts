@@ -93,11 +93,6 @@ export function tryFitView() {
 let geoquery = null as GeoQuery;
 
 function queue(groups: number[][], then: Action) {
-    if (geoquery) {
-        //cancel last session query
-        geoquery.cancel();
-        geoquery = null;
-    }
     const next = () => {
         if (groups.length === 0) {
             legend.info(null);
@@ -151,6 +146,11 @@ function queue(groups: number[][], then: Action) {
 
 
 export function reset(cfg: Config, then?: Action) {
+    if (geoquery) {
+        //cancel last session query
+        geoquery.cancel();
+        geoquery = null;
+    }
     $state.reset(cfg);
     $state.issues = {};
     legend.resize();
@@ -161,7 +161,12 @@ export function reset(cfg: Config, then?: Action) {
     pins.clear();
     pies.clear();
     popups.clear();
-    queue(cfg.groups, then);
+    if (cfg.error) {
+        legend.info(cfg.error);
+    }
+    else {
+        queue(cfg.groups, then);
+    }
 }
 
 export function repaint(cfg: Config, type: 'flow' | 'banner' | 'legend' | 'bubble' | 'map') {
