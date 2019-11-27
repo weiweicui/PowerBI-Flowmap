@@ -182,10 +182,6 @@ function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Ma
         para.center = map.getCenter();
         para.zoom = map.getZoom()
     }
-    else {
-        para.center = new Microsoft.Maps.Location(0, 0);
-        para.zoom = defaultZoom(div.offsetWidth, div.offsetHeight);
-    }
     return para;
 }
 
