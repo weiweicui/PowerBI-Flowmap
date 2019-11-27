@@ -2,7 +2,7 @@ import powerbi from "powerbi-visuals-api";
 import { Roles } from './Roles';
 import { Category } from './Category';
 import { StringMap, sequence, Func, values, first } from '../lava/type';
-import { Format } from "./Format";
+import { Format, Fmt } from "./Format";
 import { Persist } from "./Persist";
 
 
@@ -25,6 +25,21 @@ export class Context<R extends string, F> {
                 selector: null
             }]
         });
+    }
+
+    public metaObj<O extends keyof F>(view: powerbi.DataView, oname: O): F[O] {
+        if (view && view.metadata && view.metadata.objects) {
+            return (view.metadata.objects[oname as string] as any || {}) as F[O];
+        }
+        return {} as F[O];
+    }
+    
+    public metaValue<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P): Fmt<F[O][P]> {
+        return this.fmt[oname].value(pname);
+    }
+
+    public property<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P, auto?: Fmt<F[O][P]> | Func<string, Fmt<F[O][P]>>): Func<string | number, Fmt<F[O][P]>> {
+        return this.fmt[oname].property(pname, auto);
     }
 
     public dirtyFormat(onames?: (keyof F)[]): boolean {

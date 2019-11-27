@@ -221,7 +221,7 @@ export class Visual implements IVisual {
         const cat = ctx.cat(role), defaultLabel = LEGEND[role].label;
         const autofill = legend[LEGEND[role].default];
         if (!cat || !ctx.fmt[role].meta.customize) {
-            const key = role === 'color' ? ctx.fmt.color.value('item') : ctx.fmt.width.value('item');
+            const key = ctx.metaValue(role, 'item');
             const txt = (legend[defaultLabel] || '').trim();
             return txt ? { [key]: txt } : {};
         }
@@ -230,7 +230,7 @@ export class Visual implements IVisual {
                 return null;//smooth legend
             }
             //has cat && customized
-            let prop = role === 'color' ? ctx.fmt.color.property('item') : ctx.fmt.width.property('item');
+            let prop = ctx.property(role, 'item');
             if (role === 'color' && ctx.fmt.color.meta.autofill) {
                 prop = ctx.fmt.color.property('item', k => ctx.host.colorPalette.getColor(k).value);
             }
@@ -446,13 +446,7 @@ export class Visual implements IVisual {
     private _inited = false;
     private _initing = false;
     private _view = null as powerbi.DataView;
-    private _metaObj<O extends keyof Format>(view: powerbi.DataView, oname: O): Format[O] {
-        if (view && view.metadata && view.metadata.objects) {
-            return (view.metadata.objects[oname as string] || {}) as Format[O];
-        }
-        return {} as Format[O];
-    }
-    
+   
     public update(options: VisualUpdateOptions) {
         const view = options.dataViews && options.dataViews[0];
         if (Persist.update(view)) {
@@ -467,8 +461,8 @@ export class Visual implements IVisual {
             this._view = view;
             this._initing = true;
             const mapFmt = new MapFormat();
-            override(this._metaObj(view, 'mapControl'), mapFmt);
-            override(this._metaObj(view, 'mapElement'), mapFmt);
+            override(this._ctx.metaObj(view, 'mapControl'), mapFmt);
+            override(this._ctx.metaObj(view, 'mapElement'), mapFmt);
             popups.reset(persist.banner.value() || []);
             app.init(this._target, mapFmt, ctl => {
                 const [center, zoom] = persist.map.value() || [null, null];

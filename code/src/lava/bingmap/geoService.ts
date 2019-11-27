@@ -102,7 +102,7 @@ export var settings = {
     MaxCacheSizeOverflow: 1000,
             
     // Bing Keys and URL
-    BingKey: "Enter your key here",
+    BingKey: "Your key here",
     BingURL: "https://dev.virtualearth.net/REST/v1/Locations?",
     BingUrlGeodata: "https://platform.bing.com/geo/spatial/v1/public/Geodata?",
 };

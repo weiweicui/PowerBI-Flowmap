@@ -15,7 +15,7 @@ interface Binding<O, R extends string> {
 
 type Mark<T, V = true> = { [P in keyof T]?: V; }
 
-type Fmt<T> = T extends { solid: { color: string } } ? string : T;
+export type Fmt<T> = T extends { solid: { color: string } } ? string : T;
 
 export class Format<R extends string, O> {
     persist<P extends keyof O>(meta: P, value: O[P]): void {

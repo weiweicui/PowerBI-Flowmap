@@ -167,7 +167,7 @@ var capability = {
 
 function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Maps.IMapLoadOptions {
     var para = {
-        credentials: 'Enter your key here',
+        credentials: 'Your key here',
         showDashboard: false,
         showTermsLink: false,
         showScalebar: fmt.scale || false,
@@ -326,7 +326,7 @@ export class Controller {
                 .sty.user_select('none');
             return root;
         };
-        this._canvas = config(selex(div).append('canvas'));
+        // this._canvas = config(selex(div).append('canvas'));
         this._svg = config(selex(div).append('svg'));
         this._svgroot = this._svg.append('g').att.id('root');
         __lavaBuildMap = () => {
@@ -346,8 +346,8 @@ export class Controller {
             Events.removeHandler(this._handler2);
             Events.removeHandler(this._handler3);
         }
-        map.getRootElement().appendChild(this._canvas.node());
-        map.getRootElement().appendChild(this._svg.node());
+        this._canvas && map.getRootElement().appendChild(this._canvas.node());
+        this._svg && map.getRootElement().appendChild(this._svg.node());
         if (!this._map) {//only for the first time, call resize
             this._map = map;
             this._resize();
@@ -379,8 +379,9 @@ export class Controller {
             return;
         }
         let w = this._map.getWidth(), h = this._map.getHeight();
-        this._svg.att.size(w, h);
-        this._canvas.att.size(w, h);
+        this._svg.att.width('100%').att.height('100%');
+        // this._svg.att.size(w, h);
+        this._canvas && this._canvas.att.size(w, h);
         this._svgroot.att.translate(w / 2, h / 2);
         for (let l of this._listener) {
             l.resize && l.resize(this);
