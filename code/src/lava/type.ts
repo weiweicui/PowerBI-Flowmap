@@ -1,10 +1,3 @@
-export interface IBorder {
-    left  : number;
-    right : number;
-    top   : number;
-    bottom: number;
-}
-
 export interface ISize {
     width : number;
     height: number;
@@ -26,14 +19,13 @@ export interface IResettable {
     reset(v?: any): this;
 }
 
-export type Match<T>     = { add: T[], remove: T[], update: T[] };
 export type Action = () => void;
 
 export type StringMap<T> = { [k: string]: T };
+
 export type NumberMap<T> = { [k: number]: T };
 
 export type Func<I, O>   = (i: I) => O;
-
 
 export function dateString(values: Date[]): (v: Date) => string {
     var valids = values.filter(v => v && v instanceof Date);
@@ -112,29 +104,6 @@ export function keys(...data: StringMap<any>[]): string[] {
     return Object.keys(result);
 }
 
-// export function keys(a: any): string[] {
-//     return Object.keys(a);
-// }
-
-// export function mark(...data: StringMap<any>[]): StringMap<true> {
-//     let result = {} as StringMap<true>;
-//     for (let d of data) {
-//         for (let k in d) {
-//             result[k] = true;
-//         }
-//     }
-//     return result;
-// }
-
-export function sameKeys(a: any, b: any): boolean {
-    let keys = Object.keys(a);
-    if (keys.length === Object.keys(b).length) {
-        return keys.every(k => k in b);
-    }
-    return false;
-}
-
-
 export function clamp(v: number, min: number, max: number): number {
     if (v < min)
         return min;
@@ -142,34 +111,6 @@ export function clamp(v: number, min: number, max: number): number {
         return max;
     return v;
 }
-
-export function sameArray<T>(a: T[], b: T[]): boolean {
-    if (a.length === b.length) {
-        for (var i = 0, len = a.length; i < len; i++) {
-            if (a[i] !== b[i])
-                return false;
-        }
-        return true;
-    }
-    return false;
-}
-
-export function match<A, B>(exist: StringMap<A>, desire: StringMap<B>, remove: (a: A) => void, add: (b: B) => void, update?: (a: A, b: B) => void) {
-    for (var ka of keys(exist)) {
-        if (!(ka in desire)) {
-            remove(exist[ka]);
-        }
-        else {
-            update && update(exist[ka], desire[ka]);
-        }
-    }
-    for (var kb of keys(desire)) {
-        if (!(kb in exist)) {
-            add(desire[kb]);
-        }
-    }
-}
-
 
 export function dict(values: string[] | number[] | (string | number)[]): StringMap<string>;
 export function dict<K>(values: K[], key: Func<K, string | number>): StringMap<K>;
@@ -187,21 +128,6 @@ export function dict<K, V>(values: K[], key?: Func<K, string | number>, val?: Fu
         }
     }
     return dict;
-}
-
-
-
-export function obj(key: string, val: any): StringMap<string> {
-    let result = {};
-    result[key] = val;
-    return result;
-}
-
-export function find<T>(data: T[], p: Func<T, any>): T {
-    for (let v of data) {
-        if (p(v)) return v;
-    }
-    return undefined;
 }
 
 export function sequence(start: number, count: number): number[] {
@@ -226,9 +152,9 @@ export function sort<T>(data: T[], selector: (datum: T, idx: number) => number):
 }
 
 
-export function groupBy<V extends T, T>(rows: readonly V[], group: Func<T, any>):StringMap<V[]> {
+export function groupBy<V extends T, T>(values: readonly V[], group: Func<T, string | number>): StringMap<V[]> {
     let result = {} as StringMap<V[]>;
-    for (let r of rows) {
+    for (let r of values) {
         let key = group(r);
         if (key in result) {
             result[key].push(r);
@@ -275,32 +201,17 @@ export function partial<T>(a: T, keys: (keyof T)[]): Partial<T> {
 }
 
 
-var idCache = {} as StringMap<string>;
-export function randomID(key?: string) {
-    if (key && key in idCache) {
-        return idCache[key];
-    }
-    else {
-        var text = "lava_";
-        if (key === undefined || !(key in idCache)) {
-            let keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            for (let i = 0; i < 8; i++)
-                text += keys.charAt(Math.floor(Math.random() * keys.length));
-        }
-        if (key) {
-            idCache[key] = text;
-        }
-        return text;
-    }
-}
-
 export function check(assert: any, msg: string) {
     if (!assert) {
+        debugger;
         console.log(msg);
     }
 }
 
-export function override(source:any, target: any) {
+export function override(source: any, target: any) {
+    if (!source) {
+        return target;
+    }
     for (let p in target) {
         if (target[p].constructor == Object) {
             if (source[p])
@@ -315,10 +226,26 @@ export function override(source:any, target: any) {
     return target;
 }
 
-export function copy<T>(source: Partial<T>, target?: T): T {
+export function copy<S>(source: S): S;
+export function copy<T>(source: Partial<T>, target: T): T;
+export function copy<S, T>(source: S, target: T): T;
+export function copy<S, T>(source: S, target: T, keys: (keyof (S))[]): T | Partial<S>;
+export function copy<T>(source: Partial<T>, target?: T, keys?: (keyof T)[]): T {
     target = target || {} as any;
-    for (var key in source) {
-        target[key] = source[key];
+    if (!source) {
+        return target;
+    }
+    if (keys) {
+        for (const key of keys) {
+            if (key in source) {
+                target[key] = source[key];
+            }
+        }
+    }
+    else {
+        for (const key in source) {
+            target[key] = source[key];
+        }
     }
     return target;
 }

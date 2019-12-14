@@ -1,12 +1,12 @@
 import powerbi from "powerbi-visuals-api";
 import { Roles } from './Roles';
 import { Category } from './Category';
-import { StringMap, sequence, Func, values, first } from '../lava/type';
-import { Format, Fmt } from "./Format";
+import { StringMap, sequence, Func, values, first, groupBy } from '../lava/type';
+import { FormatManager, Config, FormatInstance, Binding, FormatDumper } from "./Format";
 import { Persist } from "./Persist";
 
 
-type FmtDict<R extends string, F> = { [P in keyof F]: Format<R, F[P]> }
+type FmtDict<R extends string, F> = { [P in keyof F]: FormatManager<R, F[P]> }
 
 export type PColumn = powerbi.DataViewCategoricalColumn & { values: powerbi.PrimitiveValue[] };
 
@@ -14,8 +14,16 @@ export class Context<R extends string, F> {
     public readonly roles = new Roles<R>();
     public readonly fmt = {} as FmtDict<R, F>;
     public readonly host: powerbi.extensibility.visual.IVisualHost;
-    
+
     private _view: powerbi.DataView;
+
+    public palette(key: string): string {
+        return this.host.colorPalette.getColor(key).value;
+    }
+
+    public isResizeVisualUpdateType(options: powerbi.extensibility.visual.VisualUpdateOptions): boolean {
+        return options.type === 4 || options.type === 32 || options.type === 36;
+    }
 
     public persist<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P, v: F[O][P]) {
         this.host.persistProperties({
@@ -27,22 +35,60 @@ export class Context<R extends string, F> {
         });
     }
 
-    public metaObj<O extends keyof F>(view: powerbi.DataView, oname: O): F[O] {
+    original<O extends keyof F>(oname: O): F[O];
+    original<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P): F[O][P];
+    original(oname: string, pname?: string): any {
+        const view = this._view;
         if (view && view.metadata && view.metadata.objects) {
-            return (view.metadata.objects[oname as string] as any || {}) as F[O];
+            const obj = view.metadata.objects[oname];
+            if (pname) {
+                return (obj || {})[pname];
+            }
+            else {
+                return obj;
+            }
         }
-        return {} as F[O];
-    }
-    
-    public metaValue<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P): Fmt<F[O][P]> {
-        return this.fmt[oname].value(pname);
+        return undefined;
     }
 
-    public property<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P, auto?: Fmt<F[O][P]> | Func<string, Fmt<F[O][P]>>): Func<string | number, Fmt<F[O][P]>> {
-        return this.fmt[oname].property(pname, auto);
+    public binding<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P): Binding<F[O], R> {
+        return this.fmt[oname].binding(pname);
     }
 
-    public dirtyFormat(onames?: (keyof F)[]): boolean {
+    public dumper<O extends keyof F>(oname: O): FormatDumper<F[O]> {
+        return this.fmt[oname].dumper();
+    }
+
+    public labels<O>(binding: Binding<O, R>, values: StringMap<any>): FormatInstance[] {
+        if (!this.cat(binding.role)) {
+            return [];
+        }
+        const role = binding.role, group = this.item(binding.fmt.oname as any, binding.pname as any) as any;
+        const result = [] as FormatInstance[];
+        const cat = this.cat(role), rows = cat.distincts(), key = cat.key;
+        const labels = cat.row2label(rows), key2rows = groupBy(rows, group);
+        for (const k in key2rows) {
+            const rows = key2rows[k], row = first(rows, r => key(r) in values);
+            if (row !== undefined) {
+                result.push({ row, value: values[key(row)], name: rows.map(r => labels[r]).join(','), key: k });
+            }
+            else {
+                result.push({ row: rows[0], name: rows.map(r => labels[r]).join(','), key: k });
+            }
+        }
+        result.forEach(r => r.auto = r.name);
+        return result;
+    }
+
+    public config<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P): Config<F[O][P]> {
+        return this.fmt[oname].config(pname);
+    }
+
+    public item<O extends keyof F, P extends keyof F[O]>(oname: O, pname: P) {
+        return this.fmt[oname].item(pname);
+    }
+
+    public dirty(onames?: (keyof F)[]): boolean {
         if (onames === undefined) {
             for (const k in this.fmt) {
                 if (this.fmt[k].dirty()) {
@@ -58,6 +104,20 @@ export class Context<R extends string, F> {
             }
         }
         return false;
+    }
+
+    public data<T = powerbi.PrimitiveValue>(r: R): T[] {
+        const c = first(this._view.categorical.values, c => c.source.roles[r], null)
+            || first(this._view.categorical.categories, c => c.source.roles[r], null);
+        return c ? c.values as any : null;
+    }
+
+    public nums(r: R): number[] {
+        return this.data<number>(r);
+    }
+
+    public strs(r: R): string[] {
+        return this.data<string>(r);
     }
 
     columns(role: R, view?: powerbi.DataView): PColumn[] {
@@ -84,7 +144,7 @@ export class Context<R extends string, F> {
         this.host = host;
         this._catCache = {};
         for (const oname in dft) {
-            this.fmt[oname] = new Format(oname, dft[oname], this);
+            this.fmt[oname] = new FormatManager(oname, dft[oname], this);
         }
     }
 
@@ -110,7 +170,7 @@ export class Context<R extends string, F> {
         }
         return values(cache);
     }
-    
+
     public rows() {
         if (this._rows !== null) {
             return this._rows;
@@ -126,41 +186,30 @@ export class Context<R extends string, F> {
 
     private _rows: number[];
 
-    public update(view: powerbi.DataView) {
+    private _fmt: { [P in keyof F]: Readonly<F[P]> };
+    public get meta(): Readonly<{ [P in keyof F]: Readonly<F[P]> }> {
+        return this._fmt;
+    }
+
+    public update(view: powerbi.DataView): this {
         this._view = view;
         this._catCache = {};
         this._rows = null;
         //update other things below
         this.roles.update(view);
         const format = (view.metadata.objects || {}) as any as F;
+        this._fmt = {} as any;
         for (const oname in this.fmt) {
-            this.fmt[oname].update(format[oname]);
+            this._fmt[oname] = this.fmt[oname].update(format[oname]);
         }
+        return this;
     }
 
-    config<O extends keyof F>(oname: O): F[O];
-    config<O extends keyof F>(...oname: O[]): F[O][];
-    public config<O extends keyof F>(_: O | O[]): any {
-        if (typeof _ === 'string') {
-            return this.fmt[_ as keyof F].partial();
-        }
-        else {
-            return (_ as (keyof F)[]).map(o => this.fmt[o].partial());
-        }
-    }
-    
-    // public object<P extends keyof F>(oname: P): Partial<F[P]> {
-    //     if (this._view && this._view.metadata && this._view.metadata.objects) {
-    //         return this._view.metadata.objects[oname as any] as any;
-    //     }
-    //     return undefined;
-    // }
-
-    public value(r: R): Func<number, powerbi.PrimitiveValue> {
+    public reader<T = powerbi.PrimitiveValue>(r: R): Func<number, T> {
         let c = first(this._view.categorical.values, c => c.source.roles[r], null)
             || first(this._view.categorical.categories, c => c.source.roles[r], null);
         if (c) {
-            return r => c.values[r];
+            return r => (c.values[r] as any as T);
         }
         else {
             return null;
@@ -179,6 +228,15 @@ export class Context<R extends string, F> {
         roles = roles.filter(r => this.cat(r));
         const keys = roles.map(r => this.cat(r).key);
         return r => keys.map(k => k(r)).join('_');
+    }
+
+    public type(r: R): powerbi.ValueTypeDescriptor {
+        if (this.cat(r)) {
+            return this.cat(r).column.source.type;
+        }
+        else {
+            return {};
+        }
     }
 
     private _catCache: StringMap<Category>;

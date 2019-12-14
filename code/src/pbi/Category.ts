@@ -1,7 +1,7 @@
 import powerbi from "powerbi-visuals-api";
 import { StringMap, dateString, NumberMap } from '../lava/type';
+
 type PColumn = powerbi.DataViewCategoryColumn | powerbi.DataViewValueColumn;
-type ISelectionId   = powerbi.visuals.ISelectionId;
 
 export class Category {
     public readonly column: PColumn;
@@ -17,6 +17,10 @@ export class Category {
         else {
             this.key = r => "";
         }
+    }
+
+    public get type() {
+        return this.column.source.type;
     }
 
     public get data() : powerbi.PrimitiveValue[] {

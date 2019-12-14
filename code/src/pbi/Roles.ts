@@ -1,9 +1,9 @@
 import { StringMap, keys, values } from '../lava/type';
 import powerbi from 'powerbi-visuals-api';
 
-type PColumn        = powerbi.DataViewCategoryColumn | powerbi.DataViewValueColumn;
+type PColumn = powerbi.DataViewCategoryColumn | powerbi.DataViewValueColumn;
 
-function index2(columns: PColumn[]): StringMap<PColumn[]> {
+function index(columns: PColumn[]): StringMap<PColumn[]> {
     let result = {} as StringMap<PColumn[]>;
     if (!columns) {
         return result;
@@ -20,27 +20,27 @@ function index2(columns: PColumn[]): StringMap<PColumn[]> {
             }
         }
         return result;
-    }    
+    }
 }
 
 export class Roles<R extends string> {
 
-    private _cmap  = {} as StringMap<PColumn[]>;
-    private _vmap  = {} as StringMap<PColumn[]>;
+    private _cmap = {} as StringMap<PColumn[]>;
+    private _vmap = {} as StringMap<PColumn[]>;
 
     update(view: powerbi.DataView): this {
         if (!view || !view.categorical) {
             this._vmap = this._cmap = {};
         }
         else {
-            let cmap = index2(view.categorical.categories);
-            let vmap = index2(view.categorical.values);
+            let cmap = index(view.categorical.categories);
+            let vmap = index(view.categorical.values);
             this._cmap = cmap;
             this._vmap = vmap;
         }
         return this;
     }
-    
+
     exist(...roles: R[]): boolean {
         return roles.every(r => r in this._cmap || r in this._vmap);
     }
@@ -79,8 +79,8 @@ export class Roles<R extends string> {
             }
         }
     }
-    
-  // private
+
+    // private
     private _sorter(column: PColumn): (r1: number, r2: number) => number {
         let values = column.values;
         let build = comp => {

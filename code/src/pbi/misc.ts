@@ -1,13 +1,14 @@
 import { Context } from './Context';
-import { Func, StringMap, clamp } from '../lava/type';
-import { ILocation } from '../lava/bingmap/converter';
+import { StringMap, clamp } from '../lava/type';
+import { ILocation } from '../lava/bingmap';
 
-export function coords<R extends string>(data: Context<R, any>, key: R, lati: R, long: R, locs: StringMap<ILocation>): StringMap<ILocation> {
-    if (!data.cat(key) || !data.cat(lati) || !data.cat(long)) {
+export function coords<R extends string>(data: Context<R, any>, key: R, lat: R, lon: R, locs?: StringMap<ILocation>): StringMap<ILocation> {
+    locs = locs || {};
+    if (!data.cat(key) || !data.cat(lat) || !data.cat(lon)) {
         return locs;
     }
-    const lats = data.cat(lati).data as number[];
-    const lons = data.cat(long).data as number[];
+    const lats = data.cat(lat).data as number[];
+    const lons = data.cat(lon).data as number[];
     const keys = data.cat(key).data as string[];
     const bad = (v: number) => isNaN(v) || v === null || v === undefined;
     for (const r of data.rows()) {

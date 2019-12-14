@@ -1,9 +1,8 @@
 import { ILocation } from './converter';
-import { Func, StringMap, keys } from '../type';
-import { jsonp } from './jsonp';
+import { Func } from '../type';
 import * as geo from './geoService';
 
-export default class GeoQuery {
+export class GeoQuery {
     private _addrs = null as string[];
     constructor(addrs: ReadonlyArray<string>) {
         this._addrs = addrs.slice(0);

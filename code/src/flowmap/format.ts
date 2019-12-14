@@ -1,5 +1,6 @@
-import { MapFormat } from '../lava/bingmap/controller';
+import { MapFormat } from '../lava/bingmap';
 import { Setting } from '../pbi/numberFormat';
+
 export class Format {
     legend = {
         show: true,
@@ -9,8 +10,8 @@ export class Format {
         width: true,
         color_default: false,
         width_default: false,
-        color_label: null as string,
-        width_label: null as string
+        color_label: '',
+        width_label: ''
     };
 
     style = {
@@ -25,7 +26,7 @@ export class Format {
         scale: 'linear' as 'linear' | 'log' | 'none',
         min: 2,
         max: 10,
-        unit: null as number
+        unit: null as number//depends
     };
 
     color = {

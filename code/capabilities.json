@@ -155,7 +155,7 @@
                     }
                 },
                 "direction":{
-                    "displayName": "• Group by",
+                    "displayName": "> Group by",
                     "description": "Merge lines based on origin or destination",
                     "type": {
                         "enumeration": [
@@ -165,7 +165,7 @@
                     }
                 },
                 "limit":{
-                    "displayName": "• Limit",
+                    "displayName": "> Limit",
                     "description": "Maximum number of flows displayed simultaneously",
                     "type": { "numeric": true }
                 }
@@ -200,22 +200,22 @@
                     "type": { "bool": true }
                 },
                 "color_default": {
-                    "displayName": "• (Autofill)",
+                    "displayName": "> (Autofill)",
                     "description": "Show default labels if unspecified",
                     "type": { "bool": true }
                 },
                 "width_default": {
-                    "displayName": "• (Autofill)",
+                    "displayName": "> (Autofill)",
                     "description": "Show default labels if unspecified",
                     "type": { "bool": true }
                 },
                 "width_label": {
-                    "displayName": "• Label",
+                    "displayName": "> Label",
                     "description": "Edit label, (hidden when empty)",
                     "type": { "text": true }
                 },
                 "color_label": {
-                    "displayName": "• Label",
+                    "displayName": "> Label",
                     "description": "Edit label, (hidden when empty)",
                     "type": { "text": true }
                 },
@@ -229,11 +229,11 @@
             "displayName": "Color",
             "properties": {
                 "customize":{
-                    "displayName": "Specify",
+                    "displayName": "Specify individually",
                     "type": { "bool": true}
                 },
                 "autofill": {
-                    "displayName": "• (Autofill)",
+                    "displayName": "> (Autofill)",
                     "description": "Choose distinct colors if unspecified",
                     "type": { "bool": true }
                 },
@@ -259,7 +259,7 @@
             "displayName": "Width",
             "properties": {
                 "customize": {
-                    "displayName": "Specify",
+                    "displayName": "Specify individually",
                     "type": {
                         "bool": true
                     }
@@ -282,17 +282,17 @@
                     }
                 },
                 "unit":{
-                    "displayName": "• Unit",
+                    "displayName": "> Unit",
                     "description": "Unit width for all lines",
                     "type": { "numeric": true }
                 },
                 "max": {
-                    "displayName": "• Max",
+                    "displayName": "> Max",
                     "description": "Maximum width for all lines",
                     "type": { "numeric": true }
                 },
                 "min": {
-                    "displayName": "• Min",
+                    "displayName": "> Min",
                     "description": "Minimum width for all lines",
                     "type": { "numeric": true }
                 },
@@ -321,7 +321,7 @@
                     "type": { "bool": true }
                 },
                 "bubbleColor": {
-                    "displayName": "• Color",
+                    "displayName": "> Color",
                     "type": { "fill": { "solid": { "color": true } } }
                 },
                 "scale": {
@@ -341,11 +341,11 @@
                     }
                 },
                 "labelOpacity": {
-                    "displayName": "• Background opacity",
+                    "displayName": "> Background opacity",
                     "type": { "formatting": {"fontSize": true} }
                 },
                 "labelColor": {
-                    "displayName": "• Background color",
+                    "displayName": "> Background color",
                     "description": "Change the background colors",
                     "type": { "fill": { "solid": { "color": true } } }
                 }
@@ -466,7 +466,7 @@
                     {"displayName": "Gray w/o labels", "value": "gray"},
                     {"displayName": "Hidden", "value": "hidden"}
                 ]}},
-                "label": { "displayName": "Label", "type": { "bool": true } },                
+                "label": { "displayName": "Label", "type": { "bool": true } },
                 "city": { "displayName": "City", "type": { "bool": true } },
                 "icon": { "displayName": "Icon", "type": { "bool": true } },
                 "building": { "displayName": "Building", "type": { "bool": true } },
@@ -487,12 +487,12 @@
                     "type": { "bool": true }
                 },
                 "located":{
-                    "displayName": "• Known",
+                    "displayName": "> Known",
                     "description": "Addresses with geo-locations",
                     "type": { "bool": true }
                 },
                 "unlocated":{
-                    "displayName": "• Unknown",
+                    "displayName": "> Unknown",
                     "description": "Addresses without geo-locations",
                     "type": { "bool": true }
                 }

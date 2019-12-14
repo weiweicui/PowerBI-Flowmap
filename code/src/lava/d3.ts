@@ -34,7 +34,7 @@ class Attr<D = any> {
         this._sel = sel;
     }
 
-    public size(width: number, height: number): ISelex<D> {
+    public size(width: number | string, height: number | string): ISelex<D> {
         this.width(width);
         this.height(height);
         return this._sel;
