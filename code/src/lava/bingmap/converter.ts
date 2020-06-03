@@ -10,8 +10,8 @@ export interface ILocation {
 }
 
 export interface IArea {
-    points: IPoint[],
-    anchor: ILocation,
+    points: IPoint[];
+    anchor: ILocation;
     margin: { south: number, north: number, east: number, west: number };
     offsets: number[];
     scale(zoom: number): number;
@@ -25,7 +25,7 @@ export interface IPoints {
 }
 
 export interface IBound {
-    anchor: ILocation,
+    anchor: ILocation;
     margin: { south: number, north: number, east: number, west: number };
     offsets?: number[];
 }
@@ -118,8 +118,8 @@ export function fitOptions(bounds: IBound[], view: ISize): Microsoft.Maps.IViewO
         }
         width /= 2;
         height /= 2;
-    }
-    return { zoom: level, center: rect.center };
+  }
+  return { zoom: level, center: rect.center };
 }
 
 export function anchorPixel(m: Microsoft.Maps.Map, bound: IBound): IPoint {

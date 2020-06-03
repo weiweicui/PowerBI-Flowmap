@@ -357,7 +357,6 @@ export class FormatDumper<T> {
   public labels<O, R extends string>(bind: Binding<O, R>, label: keyof T, missing: Func<FormatDumper<T>, void>): this;
   public labels<O, R extends string>(bind: Binding<O, R>, label: keyof T, numeric: true): this;
   public labels<O, R extends string>(bind: Binding<O, R>, label: keyof T, para?: Func<FormatDumper<T>, void> | true): this {
-    debugger;
     if (!this._fmt.binding(label)) {
       debugger;
       return this;

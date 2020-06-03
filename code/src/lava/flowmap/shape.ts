@@ -150,6 +150,7 @@ export interface IShape {
     calc(weight: (row: number) => number): number[];
     transform(map: Microsoft.Maps.Map, pzoom: number): void;
     bound: IBound;
+    source: ILocation;
     paths(): IPath[];
 }
 
@@ -159,10 +160,10 @@ export function build(type: 'straight' | 'flow' | 'arc', d3: ISelex, src: ILocat
             return new FlowShape(d3, src, tars, trows, weis);
         case 'arc':
             const arc = helper.arc(src, tars, trows, weis);
-            return new LineShape(d3, arc.paths, arc.bound);
+            return new LineShape(d3, src, arc.paths, arc.bound);
         case 'straight':
             const line = helper.line(src, tars, trows, weis);
-            return new LineShape(d3, line.paths, line.bound);
+            return new LineShape(d3, src, line.paths, line.bound);
     }
 }
 
@@ -171,9 +172,9 @@ class FlowShape implements IShape {
     public readonly bound: IBound;
     private _layout: ILayout;
     private _row2tar = {} as StringMap<ILocation>;
-    private _src = null as ILocation;
+    public readonly source: ILocation;
     constructor(d3: ISelex, src: ILocation, tars: ILocation[], trows: number[], weis?: number[]) {
-        this._src = src;
+        this.source = src;
         const area = map20.points([src].concat(tars));
         const points = area.points;
         const source = points.shift() as IPoint;
@@ -213,10 +214,12 @@ class FlowShape implements IShape {
 class LineShape implements IShape {
     public readonly d3: ISelex;
     public readonly bound: IBound;
+    public readonly source: ILocation;
 
     private _row2Path = {} as StringMap<LinePath>;
-    
-    constructor(d3: ISelex, row2Path: StringMap<LinePath>, bound: IBound) {
+
+    constructor(d3: ISelex, src: ILocation, row2Path: StringMap<LinePath>, bound: IBound) {
+        this.source = src;
         this.d3 = d3;
         this._row2Path = row2Path;
         this.bound = bound;

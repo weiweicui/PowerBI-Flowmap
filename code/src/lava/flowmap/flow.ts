@@ -3,7 +3,7 @@ import { $state } from './app';
 import { IShape, build } from './shape';
 import { IPath } from './algo';
 import { ISelex } from '../d3';
-import { IListener, IBound } from '../bingmap';
+import { IListener, IBound, ILocation } from '../bingmap';
 
 let root: ISelex;
 
@@ -17,6 +17,10 @@ class VisualFlow {
     
     public get bound() {
         return this._shape.bound;
+    }
+  
+    public get source() {
+        return this._shape.source;
     }
 
     reweight(weight: Func<number, number>) {
@@ -155,6 +159,10 @@ export function clear() {
 
 export function bounds(): IBound[] {
     return flows.map(f => f.bound);
+}
+
+export function sources(): ILocation[] {
+  return flows.map(f => f.source);
 }
 
 let flows = [] as VisualFlow[];
