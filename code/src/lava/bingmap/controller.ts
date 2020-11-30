@@ -166,7 +166,7 @@ var capability = {
 }
 
 function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Maps.IMapLoadOptions {
-  var para = {
+  const para = {
     credentials: 'Your key here',
     showDashboard: false,
     showTermsLink: false,
@@ -177,7 +177,7 @@ function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Ma
     disableZooming: !fmt.zoom,
     mapTypeId: mapType(fmt)
   } as Microsoft.Maps.IMapLoadOptions;
-
+  
   if (map) {
     para.center = map.getCenter();
     para.zoom = map.getZoom()
@@ -196,12 +196,13 @@ function mapType(v: IMapFormat) {
 }
 
 function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
-  var nothing = { labelVisible: false, visible: false, borderVisible: false };
-  var visible = { visible: true, labelVisible: v.label };
+  const nothing = { labelVisible: false, visible: false, borderVisible: false };
+  const visible = { visible: true, labelVisible: v.label };
+  const version = '1.*';
 
   if (v.type === 'hidden') {
     return {
-      version: '1.0',
+      version,
       elements: {
         area: nothing,
         point: nothing,
@@ -216,32 +217,26 @@ function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
       }
     } as Microsoft.Maps.ICustomMapStyle;
   }
-  var result = {
-    version: "1.0",
-    elements: {
-      highSpeedRamp: nothing,
-      ramp: nothing,
-      unpavedStreet: nothing,
-      tollRoad: nothing,
-      trail: nothing
-    }
-  } as Microsoft.Maps.ICustomMapStyle;
-  if (!v.building) {
-    result.elements.structure = { visible: false };
-    result.elements.building = { visible: false };
-  }
-  result.elements.mapElement = { labelVisible: v.label };
-  result.elements.political = { labelVisible: v.label, visible: true };
-  result.elements.district = { labelVisible: v.label, visible: true };
+
+  const elements = {
+    highSpeedRamp: nothing,
+    ramp: nothing,
+    unpavedStreet: nothing,
+    tollRoad: nothing,
+    trail: nothing
+  } as Microsoft.Maps.ICustomMapStyle['elements'];  
+  
+  elements.mapElement = elements.political = { labelVisible: v.label };
+
   if (v.road === 'gray' || v.road === 'gray_label') {
-    result.elements.transportation = {
+    elements.transportation = {
       visible: true,
       labelVisible: v.road === 'gray_label',
       fillColor: '#DDDDDD',
       strokeColor: '#AAAAAA',
       labelOutlineColor: '#EEEEEE'
     } as Microsoft.Maps.IMapElementStyle;
-    result.elements.street = {
+    elements.street = {
       visible: true,
       labelVisible: v.road === 'gray_label',
       fillColor: "#EEEEEE",
@@ -250,18 +245,22 @@ function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
     } as Microsoft.Maps.IMapElementStyle;
   }
   else if (v.road === 'hidden') {
-    result.elements.transportation = nothing;
+    elements.transportation = nothing;
   }
-  result.elements.point = v.icon ? visible : nothing;
-  result.elements.vegetation = v.forest ? visible : nothing;
-  result.elements.populatedPlace = { labelVisible: v.city, visible: v.icon };
-  result.elements.area = v.area ? visible : nothing;
-  return result;
+
+  if (!v.building) {
+    elements.structure = elements.building = { visible: false };
+  }
+  elements.point = v.icon ? visible : nothing;
+  elements.vegetation = v.forest ? visible : nothing;
+  elements.populatedPlace = { labelVisible: v.city, visible: v.icon };
+  elements.area = v.area ? visible : nothing;
+  return { version, elements };
 }
 
 export interface IListener {
-  transform?(ctl: Controller, pzoom: number, end?: boolean);
-  resize?(ctl: Controller);
+  transform?(ctl: Controller, pzoom: number, end?: boolean): void;
+  resize?(ctl: Controller): void;
 }
 
 export class Controller {
