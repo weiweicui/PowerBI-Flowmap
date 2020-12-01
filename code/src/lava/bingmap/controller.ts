@@ -177,7 +177,7 @@ function parameter(map: Map, fmt: IMapFormat, div: HTMLDivElement): Microsoft.Ma
     disableZooming: !fmt.zoom,
     mapTypeId: mapType(fmt)
   } as Microsoft.Maps.IMapLoadOptions;
-  
+
   if (map) {
     para.center = map.getCenter();
     para.zoom = map.getZoom()
@@ -199,6 +199,10 @@ function customStyle(v: IMapFormat): Microsoft.Maps.ICustomMapStyle {
   const nothing = { labelVisible: false, visible: false, borderVisible: false };
   const visible = { visible: true, labelVisible: v.label };
   const version = '1.*';
+
+  if (v.type === 'aerial') {
+    return null;
+  }
 
   if (v.type === 'hidden') {
     return {

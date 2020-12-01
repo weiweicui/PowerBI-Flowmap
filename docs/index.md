@@ -75,6 +75,7 @@ You can get it from the [Office Store](https://store.office.com/en-us/app.aspx?a
         * When categorical, such as texts, you can sepcify a color for each category. A default color is used when not specified.            
     >Please note that, due to implementation limit, `Flow` style only works with categorical color values.
     * **Origin/Destination latitude/longitude**: These fields specify the geo-locations of sources and targets.
+  > Please note that only decimal numbers are accepted: latitudes range from -90 to 90, while longitudes range from -180 to 180.
     * **Origin/Destination name**: These fields are used to represent origins and destinations when displayed in tooltips or labels. Sometimes, the values in the **Origin** and **Destination** fields are needed for geo-coding and cannot be user-friendly. So these two fields can help put friendly names in the report.
     * **Tooltip**: You can choose what to show when hovering over a line or a bubble. By default, the names are displayed.
     * **Label**: We can show labels for bubbles. This field will decide the content in the labels. By default the names are used. You can turn on this feature in the **Bubble - Label** panel.
