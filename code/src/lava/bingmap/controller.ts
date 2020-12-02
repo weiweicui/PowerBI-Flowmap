@@ -340,7 +340,7 @@ export class Controller {
         .sty.user_select('none');
       return root;
     };
-    // this._canvas = config(selex(div).append('canvas'));
+    this._canvas = config(selex(div).append('canvas'));
     this._svg = config(selex(div).append('svg'));
     this._svgroot = this._svg.append('g').att.id('root');
     __lavaBuildMap = () => {
