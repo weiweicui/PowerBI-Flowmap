@@ -1,4 +1,4 @@
-import { StringMap, keys, values } from '../lava/type';
+import { StringMap, keys, values, toDate } from '../lava/type';
 import powerbi from 'powerbi-visuals-api';
 
 type PColumn = powerbi.DataViewCategoryColumn | powerbi.DataViewValueColumn;
@@ -82,24 +82,30 @@ export class Roles<R extends string> {
 
     // private
     private _sorter(column: PColumn): (r1: number, r2: number) => number {
-        let values = column.values;
-        let build = comp => {
+        const values = column.values;
+        const nullCompare = (va: any, vb: any) => {
+            if (va === null || va === undefined) {
+                return -1;
+            }
+            if (vb === null || vb === undefined) {
+                return 1;
+            }
+            return undefined;
+        };
+        const build = customCompare => {
             return (ra: number, rb: number) => {
-                let va = values[ra], vb = values[rb];
-                if (va === null || va === undefined) {
-                    return -1;
-                }
-                if (vb === null || vb === undefined) {
-                    return 1;
-                }
-                return comp(va, vb);
+                const va = values[ra], vb = values[rb];
+                return nullCompare(va, vb) || customCompare(va, vb);
             }
         }
         if (column.source.type.numeric) {
             return build((a, b) => a - b);
         }
         else if (column.source.type.dateTime) {
-            return build((a, b) => a.getTime() - b.getTime());
+            return build((a, b) => {
+                const da = toDate(a), db = toDate(b);
+                return nullCompare(da, db) || da.getTime() - db.getTime();
+            });
         }
         else {
             return build((a, b) => (a + '').localeCompare(b + ''));

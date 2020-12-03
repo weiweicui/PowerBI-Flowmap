@@ -1,5 +1,5 @@
 import powerbi from "powerbi-visuals-api";
-import { StringMap, dateString, NumberMap } from '../lava/type';
+import { StringMap, buildLabels, NumberMap } from '../lava/type';
 
 type PColumn = powerbi.DataViewCategoryColumn | powerbi.DataViewValueColumn;
 
@@ -23,7 +23,7 @@ export class Category {
         return this.column.source.type;
     }
 
-    public get data() : powerbi.PrimitiveValue[] {
+    public get data(): powerbi.PrimitiveValue[] {
         return this.column.values;
     }
 
@@ -33,7 +33,7 @@ export class Category {
             .createSelectionId()
             .getSelector();
     }
-    
+
     public distincts(rows?: number[]): number[] {
         if (this._distincts && !rows) {
             return this._distincts;
@@ -71,14 +71,9 @@ export class Category {
         if (!rows || rows.length === 0) {
             return {};
         }
-        let values = rows.map(r => this.column.values[r]);
-        if (this.column.source.type.dateTime) {
-            let conv = dateString(values as Date[]);
-            values = values.map(d => d instanceof Date ? conv(d) : d as any);
-        }
-        let result = {} as NumberMap<string>;
+        const labels = this.labels(rows), result = {} as NumberMap<string>;
         for (let i = 0; i < rows.length; i++) {
-            result[rows[i]] = values[i] as string;
+            result[rows[i]] = labels[i] as string;
         }
         return result;
     }
@@ -87,11 +82,11 @@ export class Category {
         if (!rows || rows.length === 0) {
             return [];
         }
-        let values = rows.map(r => this.column.values[r]);
-        if (!this.column.source.type.dateTime) {
-            return values as any;
+        if (this.column.source.type.dateTime) {
+            return buildLabels(rows.map(r => this.column.values[r]));
         }
-        let conv = dateString(values as Date[]);
-        return values.map(d => d instanceof Date ? conv(d) : d as any);
+        else {
+            return rows.map(r => this.column.values[r] + "");
+        }
     }
 }

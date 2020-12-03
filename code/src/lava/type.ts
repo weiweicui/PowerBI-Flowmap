@@ -1,12 +1,12 @@
 export interface ISize {
-    width : number;
+    width: number;
     height: number;
 }
 
 export interface IRect {
-    x     : number;
-    y     : number;
-    width : number;
+    x: number;
+    y: number;
+    width: number;
     height: number;
 }
 
@@ -25,12 +25,29 @@ export type StringMap<T> = { [k: string]: T };
 
 export type NumberMap<T> = { [k: number]: T };
 
-export type Func<I, O>   = (i: I) => O;
+export type Func<I, O> = (i: I) => O;
 
-export function dateString(values: Date[]): (v: Date) => string {
-    var valids = values.filter(v => v && v instanceof Date);
+export function buildLabels(values: any[]): string[] {
+    const validValues = values.map(v => toDate(v) || v);
+    const validDates = validValues.filter(v => v && v instanceof Date);
+    const date2Label = dateString(validDates);
+    return validValues.map(v => v instanceof Date ? date2Label(v) : v + "");
+}
+
+export function toDate(value: Date | string | number): Date {
+    if (value instanceof Date) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        var ticks = Date.parse(value);
+        return Number.isNaN(ticks) ? null : new Date(ticks);
+    }
+    return new Date(value);
+}
+
+function dateString(valids: Date[]): (v: Date) => string {
     if (valids.length === 0) {
-        return d => d + "";
+        return null;
     }
     var years = valids.map(v => v.getFullYear());
     var months = valids.map(v => v.getMonth());
